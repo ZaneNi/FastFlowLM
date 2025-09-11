@@ -2,7 +2,7 @@
 /// \brief Tokenizer implementation for text encoding/decoding
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.7
+/// \version 0.9.9
 #include "tokenizer/tokenizer.hpp"
 #include <iostream>
 #include <fstream>
@@ -15,9 +15,9 @@
 /// \brief Constructor
 /// \param model_path the model path
 Tokenizer::Tokenizer(const std::string& model_path) {
-    std::ifstream fs(model_path + "/tokenizer.json", std::ios::in | std::ios::binary);
+    std::ifstream fs(model_path + "\\tokenizer.json", std::ios::in | std::ios::binary);
     if (fs.fail()) {
-        std::cerr << "Cannot open " << model_path + "/tokenizer.json" << std::endl;
+        std::cerr << "Cannot open " << model_path + "\\tokenizer.json" << std::endl;
         exit(1);
     }
     std::string data;
@@ -36,58 +36,6 @@ Tokenizer::Tokenizer(const std::string& model_path) {
     }
     else {
         this->is_doubled_encoded = false;
-    }
-    // load tokenizer configurations
-    std::ifstream fs_config(model_path + "/tokenizer_config.json", std::ios::in | std::ios::binary);
-    if (fs_config.fail()) {
-        std::cerr << "Cannot open " << model_path + "/tokenizer_config.json" << std::endl;
-        exit(1);
-    }
-    std::string data_config;
-    fs_config.seekg(0, std::ios::end);
-    size_t size_config = static_cast<size_t>(fs_config.tellg());
-    fs_config.seekg(0, std::ios::beg);
-    data_config.resize(size_config);
-    fs_config.read(data_config.data(), size_config);
-    fs_config.close();
-    auto tokenizer_config = nlohmann::json::parse(data_config);
-    // check if bos_token is null
-    if (tokenizer_config["bos_token"].is_null()) {
-        this->has_bos_token = false;
-    }
-    else {
-        this->has_bos_token = true;
-    }
-    // load chat template
-    this->tmpl = std::make_unique<minja::chat_template>(
-        tokenizer_config["chat_template"],
-        this->has_bos_token ? tokenizer_config["bos_token"] : "",
-        tokenizer_config["eos_token"]
-    );
-    
-    if (this->has_bos_token) {
-        this->bos_token_id = tokenizer_config["bos_token_id"].get<int>();
-    }
-    else {
-        this->bos_token_id = -1;
-    }
-    this->eos_token = tokenizer_config["eos_token"].get<std::string>();
-    for (auto& token : tokenizer_config["eos_token_id"]) {
-        this->eos_token_ids.push_back(token.get<int>());
-    }
-    this->user_system_prompt = "";
-    this->extra_context["user_system_prompt"] = this->user_system_prompt;
-    this->extra_context["enable_thinking"] = false;
-    JSON_GET(this->think_marker_id, tokenizer_config, "think_marker_id", -1, int);
-    JSON_GET(this->boi_token, tokenizer_config, "boi_token", "", std::string);
-    JSON_GET(this->eoi_token, tokenizer_config, "eoi_token", "", std::string);
-    JSON_GET(this->image_token, tokenizer_config, "image_token", "", std::string);
-    if (!this->boi_token.empty()) {
-        assert(!this->eoi_token.empty());
-        assert(!this->image_token.empty());
-        this->extra_context["boi_token"] = this->boi_token;
-        this->extra_context["eoi_token"] = this->eoi_token;
-        this->extra_context["image_token"] = this->image_token;
     }
 }
 
@@ -213,24 +161,4 @@ std::string Tokenizer::decode(const std::vector<int>& tokens) {
 /// \return the decoded text
 std::string Tokenizer::run_time_decoder(int answer_token) {
     return this->cpt_to_utf8(this->tokenizer->IdToToken(answer_token));
-}
-
-/// \brief Apply the chat template
-/// \param messages the messages
-/// \param add_generation_prompt the add generation prompt
-/// \return the chat template
-std::string Tokenizer::apply_chat_template(nlohmann::ordered_json& messages, bool add_generation_prompt, bool enable_thinking, bool block_system_prompt) {
-    minja::chat_template_inputs inputs;
-    inputs.add_generation_prompt = add_generation_prompt;
-    inputs.messages = messages;
-    this->extra_context["enable_thinking"] = enable_thinking;
-    inputs.extra_context = this->extra_context;
-    return this->tmpl->apply(inputs);
-}
-
-/// \brief Set the user system prompt
-/// \param user_system_prompt the user system prompt
-void Tokenizer::set_user_system_prompt(const std::string& user_system_prompt) {
-    this->user_system_prompt = user_system_prompt;
-    this->extra_context["user_system_prompt"] = user_system_prompt;
 }

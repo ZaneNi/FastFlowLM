@@ -2,7 +2,7 @@
 /// \brief sampler class
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.7
+/// \version 0.9.9
 /// \note This class is used to sample the tokens.
 #pragma once
 
@@ -46,7 +46,6 @@ public:
     // Ring buffer for frequency tracking
     std::deque<int> token_history;
     size_t freq_penalty_window;
-    float freq_penalty_decay;
     size_t rep_penalty_window;
 
     /// \brief Constructor

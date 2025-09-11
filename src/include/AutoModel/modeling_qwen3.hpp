@@ -1,0 +1,93 @@
+/// \file qwen3.hpp
+/// \brief qwen3 class
+/// \author FastFlowLM Team
+/// \date 2025-09-04
+/// \version 0.9.9
+/// \note This is a source file for the qwen3 class
+
+#pragma once
+#include "AutoModel/automodel.hpp"
+
+
+/************              qwen3            **************/
+class Qwen3 : public AutoModel {
+private:
+    std::string current_model = "Qwen3";
+
+    bool enable_think = false;
+
+    void setup_tokenizer(std::string model_path);
+
+public:
+    Qwen3(unsigned int device_id);
+
+    void load_model(std::string model_path, json model_inf, int default_context_length = -1) override;
+    //void toggle_enable_think() override;
+    bool insert(chat_meta_info_t& meta_info, lm_uniform_input_t& input) override;
+    std::string generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os) override;
+    std::string generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os = std::cout) override;
+    std::string apply_chat_template(nlohmann::ordered_json& messages) override;
+
+    /// \brief Override configure_parameter to handle Qwen3-specific parameters
+    bool configure_parameter(std::string parameter_name, const std::any& value) override {
+        if (parameter_name == "enable_think") {
+            try {
+                this->enable_think = std::any_cast<bool>(value);
+                return true;
+            } catch (const std::bad_any_cast&) {
+                return false;
+            }
+        }
+        else if (parameter_name == "toggle_think") {
+            this->enable_think = !this->enable_think;
+            return true;
+        }
+        else if (parameter_name == "system_prompt") {
+            try {
+                this->user_system_prompt = std::any_cast<std::string>(value);
+                this->extra_context["user_system_prompt"] = this->user_system_prompt;
+                return true;
+            } catch (const std::bad_any_cast&) {
+                return false;
+            }
+        }
+        // Call base class implementation for any unhandled parameters
+        return AutoModel::configure_parameter(parameter_name, value);
+    }
+};
+
+class Qwen3_IT : public AutoModel {
+private:
+    std::string current_model = "Qwen3_IT";
+
+    void setup_tokenizer(std::string model_path);
+
+public:
+    Qwen3_IT(unsigned int device_id);
+
+    void load_model(std::string model_path, json model_inf, int default_context_length = -1) override;
+    //void toggle_enable_think() override;
+    bool insert(chat_meta_info_t& meta_info, lm_uniform_input_t& input) override;
+    std::string generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os) override;
+    std::string generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os = std::cout) override;
+    std::string apply_chat_template(nlohmann::ordered_json& messages) override;
+};
+
+class Qwen3_TK : public AutoModel {
+private:
+    std::string current_model = "Qwen3_TK";
+
+    int think_marker_id;
+
+    void setup_tokenizer(std::string model_path);
+
+public:
+    Qwen3_TK(unsigned int device_id);
+
+    void load_model(std::string model_path, json model_inf, int default_context_length = -1) override;
+    //void toggle_enable_think() override;
+    bool insert(chat_meta_info_t& meta_info, lm_uniform_input_t& input) override;
+    std::string generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os) override;
+    std::string generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os = std::cout) override;
+    std::string apply_chat_template(nlohmann::ordered_json& messages) override;
+};

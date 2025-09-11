@@ -4,11 +4,10 @@
  * \brief Main entry point for the FLM application
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.7
+ * \version 0.9.9
  */
 #pragma once
 #include "utils/utils.hpp"
-#include "chat/chat_bot.hpp"
 #include "nlohmann/json.hpp"
 #include "model_list.hpp"
 #include "wstream_buf.hpp"
@@ -17,6 +16,9 @@
 #include "image/image_reader.hpp"
 #include <codecvt>
 #include <vector>
+
+
+#include "AutoModel/all_models.hpp"
 
 using json = nlohmann::ordered_json;
 
@@ -37,14 +39,15 @@ typedef enum {
 /// \brief Runner class
 class Runner {
     public: 
-        Runner(model_list& supported_models, ModelDownloader& downloader, std::string& tag);
+        Runner(model_list& supported_models, ModelDownloader& downloader, std::string& tag, int ctx_length);
         void run();
     private:
         std::string tag;
         model_list supported_models;
         ModelDownloader& downloader;
-        std::unique_ptr<chat_bot> chat_engine;
+        std::unique_ptr<AutoModel> auto_chat_engine;
         int generate_limit;
+        int ctx_length;
         std::string system_prompt;
         // CLI instance for interactive input
         CLIWide cli;

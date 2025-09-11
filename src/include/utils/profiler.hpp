@@ -2,7 +2,7 @@
 /// \brief profiler class
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.7
+/// \version 0.9.9
 /// \note This class is used to profile the code.
 #pragma once
 

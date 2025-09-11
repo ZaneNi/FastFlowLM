@@ -4,7 +4,7 @@
  * \brief Custom ostream for streaming
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.7
+ * \version 0.9.9
  */
 #pragma once
 
@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
-#include "chat/chat_bot.hpp"
+#include "AutoModel/automodel.hpp"
 
 using json = nlohmann::ordered_json;
 
@@ -52,7 +52,7 @@ protected:
 
 public:
     ///@brief Call this when generation is complete
-    void finalize_chat(chat_meta_info& meta_info) {
+    void finalize_chat(chat_meta_info_t& meta_info) {
         // Send all remaining content, including incomplete sequences
         if (!buffer.empty()) {
             send_response(buffer, true);
@@ -63,7 +63,7 @@ public:
     }
     ///@brief Call this when generation is complete
     ///@param context the context
-    void finalize_generate(chat_meta_info& meta_info, std::vector<int>& context) {
+    void finalize_generate(chat_meta_info_t& meta_info, std::vector<int>& context) {
         // Send all remaining content, including incomplete sequences
         if (!buffer.empty()) {
             send_response(buffer, true);
@@ -158,7 +158,7 @@ private:
     }
 
     ///@brief Send the chat final response
-    void send_chat_final_response(chat_meta_info& meta_info) {
+    void send_chat_final_response(chat_meta_info_t& meta_info) {
         json response;
         
         response = {
@@ -182,7 +182,7 @@ private:
     
     ///@brief Send the generate final response
     ///@param content the content
-    void send_generate_final_response(chat_meta_info& meta_info, const std::vector<int>& content) {
+    void send_generate_final_response(chat_meta_info_t& meta_info, const std::vector<int>& content) {
         json response;
         
         response = {
@@ -222,12 +222,12 @@ public:
         : std::ostream(&buf), buf(model, callback, is_chat_format) {}
     
     ///@brief Finalize the chat
-    void finalize_chat(chat_meta_info& meta_info) {
+    void finalize_chat(chat_meta_info_t& meta_info) {
         buf.finalize_chat(meta_info);
     }
     ///@brief Finalize the generate
     ///@param context the context
-    void finalize_generate(chat_meta_info& meta_info, std::vector<int>& context) {
+    void finalize_generate(chat_meta_info_t& meta_info, std::vector<int>& context) {
         buf.finalize_generate(meta_info, context);
     }
 

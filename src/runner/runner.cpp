@@ -4,7 +4,7 @@
 *  \brief Runner implementation for interactive model execution
 *  \author FastFlowLM Team
 *  \date 2025-08-05
-*  \version 0.9.7
+*  \version 0.9.9
 */
 #include "runner.hpp"
 #include <iostream>
@@ -32,14 +32,24 @@ std::map<std::string, runner_cmd_t> cmd_map = {
 /// \param supported_models - the list of supported models
 /// \param downloader - the downloader for the models
 /// \param tag - the tag of the model to load
-Runner::Runner(model_list& supported_models, ModelDownloader& downloader, std::string& tag) 
+Runner::Runner(model_list& supported_models, ModelDownloader& downloader, std::string& tag, int ctx_length)
     : supported_models(supported_models), downloader(downloader), tag(tag) {
-    this->chat_engine = std::make_unique<chat_bot>(0);
+    if (ctx_length != -1) {
+        this->ctx_length = ctx_length >= 512 ? ctx_length : 512;
+    } else {
+        this->ctx_length = -1;
+    }
+    if (this->auto_chat_engine != nullptr) {
+        this->auto_chat_engine.reset();
+    }
+    std::pair<std::string, std::unique_ptr<AutoModel>> auto_model = get_auto_model(this->tag);
+    this->auto_chat_engine = std::move(auto_model.second);
+    this->tag = auto_model.first;
     if (!this->downloader.is_model_downloaded(this->tag)) {
         this->downloader.pull_model(this->tag);
     }
     nlohmann::json model_info = this->supported_models.get_model_info(this->tag);
-    this->chat_engine->load_model(this->supported_models.get_model_path(this->tag), model_info);
+    this->auto_chat_engine->load_model(this->supported_models.get_model_path(this->tag), model_info, this->ctx_length);
     this->generate_limit = -1;
 }
 
@@ -49,10 +59,9 @@ Runner::Runner(model_list& supported_models, ModelDownloader& downloader, std::s
 
 /// \brief Run the runner
 void Runner::run() {
-    chat_meta_info meta_info;
     bool verbose = false;
     this->system_prompt = "";
-    this->chat_engine->set_user_system_prompt(this->system_prompt);
+    this->auto_chat_engine->configure_parameter("system_prompt", this->system_prompt);
     std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8conv;
     wstream_buf obuf(std::cout);
     std::ostream ostream(&obuf);
@@ -136,7 +145,9 @@ void Runner::run() {
                 }
             }
             else if (first_token == "/think") {
-                this->chat_engine->toggle_enable_think();
+                if (!this->auto_chat_engine->configure_parameter("toggle_think", std::any{})) {
+                    header_print("WARNING", "Think is not toggleable for this model!");
+                }
             }
             else if (first_token == "/help") {
                 this->cmd_help(input_list);
@@ -148,7 +159,7 @@ void Runner::run() {
                 verbose = !verbose;
             }
             else if (first_token == "/history") {
-                std::pair<std::string, std::vector<int>> history = this->chat_engine->get_history();
+                std::pair<std::string, std::vector<int>> history = this->auto_chat_engine->get_history();
                 std::cout << "History: " << std::endl;
                 std::cout << history.first << std::endl;
                 std::cout << "Tokens: " << history.second.size() << std::endl;
@@ -164,7 +175,8 @@ void Runner::run() {
         } else {
             // This is a regular message, not a command
             // std::cout << std::endl;  // Add newline before AI response
-            this->chat_engine->start_ttft_timer();
+            lm_uniform_input_t uniformed_input;
+            this->auto_chat_engine->start_ttft_timer();
             int last_file_name_idx = 0;
             if (first_token == "/input") {
                 std::string filename;
@@ -184,27 +196,9 @@ void Runner::run() {
                     last_file_name_idx = 1;
                 }
 
-                if (filename.find(".jpg") != std::string::npos || filename.find(".png") != std::string::npos) {
-                    header_print("FLM", "Loading image: " << filename);
-                    auto start_time = std::chrono::high_resolution_clock::now();
-                    image = load_image(filename);
-                    if (image.size() == 0){
-                        header_print("FLM", "Error: Could not load image: " << filename);
-                        header_print("FLM", "Please check if the file exists and is readable.");
-                        continue;
-                    }
-                    
-                    image = preprocess_image(image);
-                    if (image.size() == 0){
-                        header_print("FLM", "Error: Could not preprocess image: " << filename);
-                        header_print("FLM", "Please check if the image is valid.");
-                        continue;
-                    }
-                    auto end_time = std::chrono::high_resolution_clock::now();
-                    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-                    header_print("FLM", "Image loaded in " << duration.count() << "ms");
-                    is_image = true;
-                    input = "";
+                if (filename.find(".jpg") != std::string::npos || filename.find(".png") != std::string::npos || filename.find(".jpeg") != std::string::npos) {
+                    uniformed_input.images.push_back(filename);
+                    uniformed_input.image_payload_types.push_back(FILE_NAME);
                 }
                 else{
                     header_print("FLM", "Loading file: " << filename);
@@ -227,20 +221,22 @@ void Runner::run() {
                 input += input_list[input_list.size() - 1];
                 std::cout << std::endl;
             }
+
+            chat_meta_info_t meta_info;
+            uniformed_input.prompt = input;
             
-            this->chat_engine->start_total_timer();
-            std::vector<int> user_tokens = this->chat_engine->tokenize(input, true, "user", true, is_image ? 1 : 0);
-            bool success = this->chat_engine->insert(meta_info, user_tokens, false, is_image ? static_cast<void*>(&image) : nullptr);
+            this->auto_chat_engine->start_total_timer();
+            bool success = this->auto_chat_engine->insert(meta_info, uniformed_input);
             if (!success){
                 header_print("WARNING", "Max length reached, stopping generation...");
                 break;
             }
-            this->chat_engine->stop_ttft_timer();
-            this->chat_engine->generate(meta_info, this->generate_limit, ostream);
-            this->chat_engine->stop_total_timer();
+            this->auto_chat_engine->stop_ttft_timer();
+            this->auto_chat_engine->generate(meta_info, this->generate_limit, ostream);
+            this->auto_chat_engine->stop_total_timer();
             std::cout << std::endl;
             if (verbose) {
-                this->chat_engine->verbose();
+                this->auto_chat_engine->verbose();
             }
         }
     }
@@ -249,33 +245,40 @@ void Runner::run() {
 /// \brief Clear the context
 /// \param input_list, std::vector<std::string>
 void Runner::cmd_clear(std::vector<std::string>& input_list) {
-    this->chat_engine->clear_context();
+    this->auto_chat_engine->clear_context();
 }
 
 /// \brief Show the status
 /// \param input_list, std::vector<std::string>
 void Runner::cmd_status(std::vector<std::string>& input_list) {
-    std::cout << this->chat_engine->show_profile() << std::endl;
+    std::cout << this->auto_chat_engine->show_profile() << std::endl;
 }
 
 /// \brief Load a model
 /// \param input_list, std::vector<std::string>
 void Runner::cmd_load(std::vector<std::string>& input_list) {
     std::string model_name = input_list[1];
-    this->tag = model_name;
-    if (!this->downloader.is_model_downloaded(this->tag)) {
-        this->downloader.pull_model(this->tag);
+    if (model_name != this->tag) {
+        this->tag = model_name;
+        if (!this->downloader.is_model_downloaded(this->tag)) {
+            this->downloader.pull_model(this->tag);
+        }
+        auto_chat_engine.reset();
+        std::pair<std::string, std::unique_ptr<AutoModel>> auto_model = get_auto_model(this->tag);
+        this->auto_chat_engine = std::move(auto_model.second);
+        this->tag = auto_model.first;
     }
+    
     nlohmann::json model_info = this->supported_models.get_model_info(this->tag);
-    this->chat_engine->load_model(this->supported_models.get_model_path(this->tag), model_info);
-    this->chat_engine->set_user_system_prompt(this->system_prompt);
+    
+    this->auto_chat_engine->load_model(this->supported_models.get_model_path(this->tag), model_info, this->ctx_length);
+    this->auto_chat_engine->configure_parameter("system_prompt", this->system_prompt);
 }
 
 /// \brief Save the history
 /// \param input_list, std::vector<std::string>
 void Runner::cmd_save(std::vector<std::string>& input_list) {
-    std::pair<std::string, std::vector<int>> history = this->chat_engine->get_history();
-    
+    std::pair<std::string, std::vector<int>> history = this->auto_chat_engine->get_history();
     // Get the FLM_MODEL_PATH environment variable for the history directory
     std::string history_dir;
     char* model_path_env = nullptr;
@@ -327,8 +330,8 @@ void Runner::cmd_save(std::vector<std::string>& input_list) {
 /// \brief Show the model information
 /// \param input_list, std::vector<std::string>
 void Runner::cmd_show(std::vector<std::string>& input_list) {
-    std::cout << this->chat_engine->show_model_info() << std::endl;
-    std::cout << "    max context length    : " << this->chat_engine->get_max_length() << std::endl;
+    std::cout << this->auto_chat_engine->show_model_info() << std::endl;
+    std::cout << "    max context length    : " << this->auto_chat_engine->get_max_length() << std::endl;
     std::cout << std::endl;
 
 }
@@ -342,19 +345,19 @@ void Runner::cmd_set(std::vector<std::string>& input_list) {
         std::cout << "Available parameters: " << std::endl;
         std::cout << "  /set topk [value] - set the top-k" << std::endl;
         std::cout << "  /set topp [value] - set the top-p" << std::endl;
-        std::cout << "  /set temperature [value] - set the temperature" << std::endl;
-        std::cout << "  /set repetition_penalty [value] - set the repetition penalty" << std::endl;
-        std::cout << "  /set frequency_penalty [value] - set the frequency penalty" << std::endl;
-        std::cout << "  /set system_prompt [value] - set the system prompt" << std::endl;
-        std::cout << "  /set context_length [value] - set the context length" << std::endl;
-        std::cout << "  /set generate_limit [value] - set the generate limit" << std::endl;
+        std::cout << "  /set temp [value] - set the temperature" << std::endl;
+        std::cout << "  /set rep-pen [value] - set the repetition penalty" << std::endl;
+        std::cout << "  /set freq-pen [value] - set the frequency penalty" << std::endl;
+        std::cout << "  /set sys-msg [value] - set the system message" << std::endl;
+        std::cout << "  /set ctx-len [value] - set the max context length" << std::endl;
+        std::cout << "  /set gen-lim [value] - Limit tokens generated per round" << std::endl;
         return;
     }
     
     std::string set_context = input_list[1];
     
     // Handle system_prompt specially since it can be multi-line
-    if (set_context == "system_prompt") {
+    if (set_context == "sys-msg") {
         // Reconstruct the original input to get the full system prompt
         std::string full_input;
         for (size_t i = 2; i < input_list.size(); i++) {
@@ -362,7 +365,7 @@ void Runner::cmd_set(std::vector<std::string>& input_list) {
             full_input += input_list[i];
         }
         this->system_prompt = full_input;
-        this->chat_engine->set_user_system_prompt(this->system_prompt);
+        this->auto_chat_engine->configure_parameter("system_prompt", this->system_prompt);
         return;
     }
     
@@ -375,37 +378,37 @@ void Runner::cmd_set(std::vector<std::string>& input_list) {
     std::string set_value = input_list[2];
 
     if (set_context == "topk"){
-        this->chat_engine->set_topk(std::stoi(set_value));
+        this->auto_chat_engine->set_topk(std::stoi(set_value));
     }
     else if (set_context == "topp"){
-        this->chat_engine->set_topp(std::stof(set_value));
+        this->auto_chat_engine->set_topp(std::stof(set_value));
     }
-    else if (set_context == "temperature"){
-        this->chat_engine->set_temperature(std::stof(set_value));
+    else if (set_context == "temp"){
+        this->auto_chat_engine->set_temperature(std::stof(set_value));
     }
-    else if (set_context == "repetition_penalty"){
-        this->chat_engine->set_repetition_penalty(std::stof(set_value));
+    else if (set_context == "rep-pen"){
+        this->auto_chat_engine->set_repetition_penalty(std::stof(set_value));
     }
-    else if (set_context == "frequency_penalty"){
-        this->chat_engine->set_frequency_penalty(std::stof(set_value));
+    else if (set_context == "freq-pen"){
+        this->auto_chat_engine->set_frequency_penalty(std::stof(set_value));
     }
-    else if (set_context == "context_length"){
-        this->chat_engine->set_max_length(std::stoi(set_value));
+    else if (set_context == "ctx-len"){
+        this->auto_chat_engine->set_max_length(std::stoi(set_value));
     }
-    else if (set_context == "generate_limit"){
+    else if (set_context == "gen-lim"){
         this->generate_limit = std::stoi(set_value);
     }
     else{
         std::cout << "Invalid context: " << set_context << std::endl;
         std::cout << "Available parameters: " << std::endl;
-        std::cout << "  /set context_length [value] - set the context length" << std::endl;
+        std::cout << "  /set ctx-len [value] - set the max context length" << std::endl;
         std::cout << "  /set topk [value] - set the top-k" << std::endl;
         std::cout << "  /set topp [value] - set the top-p" << std::endl;
-        std::cout << "  /set temperature [value] - set the temperature" << std::endl;
-        std::cout << "  /set repetition_penalty [value] - set the repetition penalty" << std::endl;
-        std::cout << "  /set frequency_penalty [value] - set the frequency penalty" << std::endl;   
-        std::cout << "  /set system_prompt [value] - set the system prompt" << std::endl;
-        std::cout << "  /set generate_limit [value] - set the generate limit" << std::endl;
+        std::cout << "  /set temp [value] - set the temperature" << std::endl;
+        std::cout << "  /set rep-pen [value] - set the repetition penalty" << std::endl;
+        std::cout << "  /set freq-pen [value] - set the frequency penalty" << std::endl;
+        std::cout << "  /set sys-msg [value] - set the system message" << std::endl;
+        std::cout << "  /set gen-lim [value] - Limit tokens generated per round" << std::endl;
     }
 }
 

@@ -4,7 +4,7 @@
  * \brief WebServer class and related declarations
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.7
+ * \version 0.9.9
  */
 #pragma once
 
@@ -196,5 +196,5 @@ class model_list;
 ///@param default_tag the default tag
 ///@param port the port to listen on, default is 11434, same with the ollama server
 ///@return the server
-std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, int port = 11434);
+std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, int port = 11434, int ctx_length = -1);
 

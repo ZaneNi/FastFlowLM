@@ -2,7 +2,7 @@
 /// \brief lm_config class
 /// \author FastFlowLM Team
 /// \date 2025-08-05
-/// \version 0.9.7
+/// \version 0.9.9
 /// \note This class is used to store the model configuration.
 #pragma once
 
@@ -142,14 +142,14 @@ class LM_Config{
             assert(this->rms_norm_eps > 0);
             assert(this->addr_qk > 0);
             assert(this->addr_kv > 0);
-            this->layer_xclbin_name = this->model_path + "/" + this->layer_xclbin_name;
-            this->lm_head_xclbin_name = this->model_path + "/" + this->lm_head_xclbin_name;
-            this->dequant_xclbin_name = this->model_path + "/" + this->dequant_xclbin_name;
-            this->mm_engine_xclbin_name = this->model_path + "/" + this->mm_engine_xclbin_name;
-            this->mha_engine_xclbin_name = this->model_path + "/" + this->mha_engine_xclbin_name;
-            this->vision_mm_engine_xclbin_name = this->model_path + "/" + this->vision_mm_engine_xclbin_name;
-            this->vision_mha_engine_xclbin_name = this->model_path + "/" + this->vision_mha_engine_xclbin_name;
-            this->vision_model_weight = this->model_path + "/" + this->vision_model_weight;
+            this->layer_xclbin_name = this->model_path + "\\" + this->layer_xclbin_name;
+            this->lm_head_xclbin_name = this->model_path + "\\" + this->lm_head_xclbin_name;
+            this->dequant_xclbin_name = this->model_path + "\\" + this->dequant_xclbin_name;
+            this->mm_engine_xclbin_name = this->model_path + "\\" + this->mm_engine_xclbin_name;
+            this->mha_engine_xclbin_name = this->model_path + "\\" + this->mha_engine_xclbin_name;
+            this->vision_mm_engine_xclbin_name = this->model_path + "\\" + this->vision_mm_engine_xclbin_name;
+            this->vision_mha_engine_xclbin_name = this->model_path + "\\" + this->vision_mha_engine_xclbin_name;
+            this->vision_model_weight = this->model_path + "\\" + this->vision_model_weight;
         }
         std::string _str(){
             std::stringstream ss;

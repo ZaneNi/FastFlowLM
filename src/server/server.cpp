@@ -4,7 +4,7 @@
  * \brief WebServer class and related declarations
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.7
+ * \version 0.9.9
  */
 #include "server.hpp"
 #include "rest_handler.hpp"
@@ -59,14 +59,36 @@ std::string utf8_truncate_middle(const std::string& input, size_t head_count, si
 ///@param request the request
 void brief_print_message_request(nlohmann::json request) {
     // if request has "messages" or "message" field, the context in meassages shall be printed briefly
+    
+    // split ollama and openai message type of image
+    
     if (request.contains("messages")) {
         for (auto& message : request["messages"]) {
-            if (message.contains("content")) {
+            // Handle string-based content
+            if (message["content"].is_string()) {
                 std::string content = message["content"].get<std::string>();
                 if (content.size() > 20) {
                     message["content"] = utf8_truncate_middle(content, 10, 10);
                 }
             }
+            // Handle array-based structured content
+            else if (message["content"].is_array()) {
+                for (auto& contentItem : message["content"]) {
+                    if (contentItem.contains("type") && contentItem["type"] == "text") {
+                        std::string text = contentItem["text"].get<std::string>();
+                        if (text.size() > 20) {
+                            contentItem["text"] = utf8_truncate_middle(text, 10, 10);
+                        }
+                    }
+                    else if (contentItem.contains("type") && contentItem["type"] == "image_url") {
+                        std::string image_url = contentItem["image_url"]["url"].get<std::string>();
+                        if (image_url.size() > 20) {
+                            contentItem["image_url"]["url"] = utf8_truncate_middle(image_url, 10, 10);
+                        }
+                    }
+                }
+            }
+            // Handle legacy "images" array
             if (message.contains("images")) {
                 nlohmann::ordered_json::array_t images = message.value("images", nlohmann::ordered_json::array());
                 nlohmann::ordered_json::array_t new_images;
@@ -74,7 +96,8 @@ void brief_print_message_request(nlohmann::json request) {
                     std::string image_str = image.get<std::string>();
                     if (image_str.size() > 20) {
                         new_images.push_back(utf8_truncate_middle(image_str, 10, 10));
-                    } else {
+                    }
+                    else {
                         new_images.push_back(image_str);
                     }
                 }
@@ -82,6 +105,68 @@ void brief_print_message_request(nlohmann::json request) {
             }
         }
     }
+
+    // convert openai type to ollama type
+    //if (request.contains("messages")) {
+    //    nlohmann::json normalized_messages = nlohmann::json::array();
+
+    //    for (auto& message : request["messages"]) {
+    //        std::string merged_text;
+    //        nlohmann::ordered_json::array_t merged_images;
+
+    //        // Handle string-based content
+    //        if (message["content"].is_string()) {
+    //            merged_text = message["content"].get<std::string>();
+    //        }
+
+    //        // Handle array-based structured content
+    //        else if (message["content"].is_array()) {
+    //            for (auto& contentItem : message["content"]) {
+    //                if (contentItem.contains("type") && contentItem["type"] == "text") {
+    //                    merged_text += contentItem["text"].get<std::string>();
+    //                }
+    //                else if (contentItem.contains("type") && contentItem["type"] == "image_url") {
+    //                    std::string image_url = contentItem["image_url"]["url"].get<std::string>();
+    //                    const std::string prefix = "data:image/png;base64,";
+    //                    if (image_url.rfind(prefix, 0) == 0) {
+    //                        image_url = image_url.substr(prefix.length());
+    //                    }
+    //                    merged_images.push_back(image_url);
+    //                }
+    //            }
+    //        }
+
+    //        // Handle legacy "images" array
+    //        if (message.contains("images")) {
+    //            for (auto& image : message["images"]) {
+    //                merged_images.push_back(image.get<std::string>());
+    //            }
+    //        }
+
+    //        // Truncate if needed
+    //        if (merged_text.size() > 20) {
+    //            merged_text = utf8_truncate_middle(merged_text, 10, 10);
+    //        }
+    //        for (auto& image : merged_images) {
+    //            if (image.size() > 20) {
+    //                image = utf8_truncate_middle(image.get<std::string>(), 10, 10);
+    //            }
+    //        }
+
+    //        // Build normalized message
+    //        nlohmann::json normalized_message;
+    //        normalized_message["role"] = message["role"];
+    //        normalized_message["content"] = merged_text;
+    //        normalized_message["images"] = merged_images;
+
+    //        normalized_messages.push_back(normalized_message);
+    //    }
+
+    //    // Replace original messages with normalized ones
+    //    request["messages"] = normalized_messages;
+    //}
+
+
     if (request.contains("message")){
         std::string content = request["message"]["content"].get<std::string>();
         if (content.size() > 20) {
@@ -236,7 +321,7 @@ void HttpSession::write_response() {
     
     // Check if this is one of the endpoints where we should skip printing the response body
     std::string target = std::string(req_.target());
-    bool skip_body_print = (target == "/api/ps" || target == "/api/tags" || target == "/api/version");
+    bool skip_body_print = (target == "/api/ps" || target == "/api/tags" || target == "/api/version" || target == "/v1/models");
     
     if (!skip_body_print) {
         try{
@@ -283,7 +368,7 @@ void HttpSession::write_streaming_response(const json& data, bool is_final) {
         
         // Send headers immediately using raw socket write
         std::string headers = "HTTP/1.1 200 OK\r\n";
-        headers += "Content-Type: application/x-ndjson\r\n";
+        headers += "Content-Type: text/event-stream\r\n";
         headers += "Cache-Control: no-cache\r\n";
         headers += "Connection: keep-alive\r\n";
         headers += "Transfer-Encoding: chunked\r\n";
@@ -325,9 +410,13 @@ void HttpSession::send_chunk_data(const json& data, bool is_final) {
     // HTTP chunked format: size in hex + \r\n + data + \r\n
     std::ostringstream chunk_size;
     chunk_size << std::hex << chunk_content.length();
-    
-    std::string http_chunk = chunk_size.str() + "\r\n" + chunk_content + "\r\n";
-    
+    std::string http_chunk;
+    //if(is_final)
+    //    http_chunk = chunk_content + "\r\n";
+    //else
+        http_chunk = chunk_size.str() + "\r\n" + chunk_content + "\r\n";
+
+
     // Send chunk immediately
     boost::system::error_code ec;
     net::write(socket_, net::buffer(http_chunk), ec);
@@ -485,7 +574,7 @@ void WebServer::handle_request(http::request<http::string_body>& req,
     }
     brief_print_message_request(request_json);
     // std::cout << "request_json: " << request_json.dump(4) << std::endl;
-    
+
     std::string key = std::string(req.method_string()) + " " + std::string(req.target());
 
     auto it = routes.find(key);
@@ -586,9 +675,9 @@ void WebServer::handle_request(http::request<http::string_body>& req,
 ///@param default_tag the default tag
 ///@param port the port
 ///@return the server
-std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, int port) {
+std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, int port, int ctx_length) {
     auto server = std::make_unique<WebServer>(port);
-    auto rest_handler = std::make_shared<RestHandler>(models, downloader, default_tag);
+    auto rest_handler = std::make_shared<RestHandler>(models, downloader, default_tag, ctx_length);
     
     // Register Ollama-compatible routes
     server->register_handler("POST", "/api/generate", 
@@ -649,6 +738,16 @@ std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader&
             json request_json;
             rest_handler->handle_models(request_json, send_response, send_streaming_response);
         });
+
+    server->register_handler("GET", "/v1/models",
+        [rest_handler](const http::request<http::string_body>& req,
+            std::function<void(const json&)> send_response,
+            std::function<void(const json&, bool)> send_streaming_response,
+            std::shared_ptr<HttpSession> session,
+            std::shared_ptr<CancellationToken> cancellation_token) {
+                json request_json;
+                rest_handler->handle_models_openai(request_json, send_response, send_streaming_response);
+        });
     
     server->register_handler("GET", "/api/version",
         [rest_handler](const http::request<http::string_body>& req,
@@ -702,6 +801,21 @@ std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader&
             rest_handler->handle_openai_chat_completion(request_json, send_response, send_streaming_response, cancellation_token);
         });
     
+    server->register_handler("POST", "/v1/completions",
+        [rest_handler](const http::request<http::string_body>& req,
+            std::function<void(const json&)> send_response,
+            std::function<void(const json&, bool)> send_streaming_response,
+            std::shared_ptr<HttpSession> session,
+            std::shared_ptr<CancellationToken> cancellation_token) {
+                json request_json;
+                if (!req.body().empty()) {
+                    request_json = json::parse(req.body());
+                }
+                rest_handler->handle_openai_completion(request_json, send_response, send_streaming_response, cancellation_token);
+        });
+
+
+
     // Add cancel endpoint - capture server by raw pointer
     WebServer* server_ptr = server.get();
     server->register_handler("POST", "/api/cancel",

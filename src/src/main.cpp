@@ -2,7 +2,7 @@
 /// \brief Main entry point for the FLM application
 /// \author FastFlowLM Team
 /// \date 2025-08-05
-/// \version 0.9.7
+/// \version 0.9.9
 /// \note This is a source file for the main entry point
 #pragma once
 #include "runner.hpp"
@@ -20,7 +20,10 @@
 #include <shlobj.h>
 #include <cstdlib>
 #include <shellapi.h>
+#include "utils/vm_args.hpp"
+#include <boost/program_options.hpp>
 
+#include "AutoModel/automodel.hpp"
 
 // Global variables
 ///@brief should_exit is used to control the server thread
@@ -118,11 +121,8 @@ void handle_user_input() {
 ///@param default_tag the default tag
 ///@param port the port to listen on, default is 11434, same with the ollama server
 ///@return the server
-std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, int port);
+std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, int port, int ctx_length);
 
-///@brief print_usage prints the usage information for the program
-///@param program_name the name of the program
-void print_usage(const std::string& program_name);
 
 ///@brief get_server_port gets the server port from environment variable FLM_SERVE_PORT
 ///@return the server port, default is 11434 if environment variable is not set
@@ -169,98 +169,34 @@ int main(int argc, char* argv[]) {
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
     
-    // Get Unicode command line arguments
-    int unicode_argc;
-    std::vector<std::string> unicode_argv = get_unicode_command_line_args(unicode_argc);
-    
-    std::string command;
-    std::string tag;
-    // std::wstring filename = L"";
-    // int allowed_length = -1;
-    bool force_redownload = false;
-    std::string power_mode = "performance"; // Default power mode
-    bool got_power_mode = false;
-    
-    // Parse the command line arguments
-    if (unicode_argc < 2) {
-        print_usage(unicode_argv[0]);
-        return 1;
+    // Parse command line arguments using Boost Program Options
+    arg_utils::ParsedArgs parsed_args;
+    if (!arg_utils::parse_options(argc, argv, parsed_args)) {
+        return 1; // Help was already printed by Boost Program Options
     }
     
-    // Parse arguments for each command
-    command = unicode_argv[1];
-    if (command == "run") {
-        if (unicode_argc < 3) {
-            print_usage(unicode_argv[0]);
-            return 1;
-        }
-        tag = unicode_argv[2];
-        
-        // Parse optional arguments
-        for (int i = 3; i < unicode_argc; i++) {
-            if (unicode_argv[i] == "--pmode" && i + 1 < unicode_argc) {
-                power_mode = unicode_argv[i + 1];
-                got_power_mode = true;
-                i++; // Skip the next argument since we consumed it
-            }
-        }
-    }
-    else if (command == "serve") {
-        // Check if the second argument is --pmode (no tag provided)
-        if (unicode_argc >= 3 && unicode_argv[2] == "--pmode") {
-            tag = "llama3.2:1b"; // Use default tag
-        } else if (unicode_argc >= 3) {
-            tag = unicode_argv[2]; // Use provided tag
-        } else {
-            tag = "llama3.2:1b"; // No arguments, use default tag
-        }
-        
-        // Parse --pmode option for serve command
-        // Start parsing from index 2 and look for --pmode
-        for (int i = 2; i < unicode_argc; i++) {
-            if (unicode_argv[i] == "--pmode" && i + 1 < unicode_argc) {
-                power_mode = unicode_argv[i + 1];
-                got_power_mode = true;
-                i++; // Skip the next argument since we consumed it
-            }
-        }
-    }
-    else if (command == "pull") {
-        if (unicode_argc < 3) {
-            std::cout << "Usage: " << unicode_argv[0] << " pull <model_tag> [--force]" << std::endl;
-            return 1;
-        }
-        tag = unicode_argv[2];
-        // Check for force flag, if true, the model will be re-downloaded
-        if (unicode_argc == 4 && unicode_argv[3] == "--force") {
-            force_redownload = true;
-        }
-
-    }
-    else if (command == "version") {
+    // Handle version requests
+    
+    if (parsed_args.version_requested) {
         std::cout << "FLM v" << __FLM_VERSION__ << std::endl;
         return 0;
     }
-    else if (command == "help") {
-        print_usage(unicode_argv[0]);
-        return 0;
-    }
-    else if (command == "remove") {
-        if (unicode_argc < 3) {
-            std::cout << "Usage: " << unicode_argv[0] << " remove <model_tag>" << std::endl;
-            return 1;
-        }
-        tag = unicode_argv[2];
-    }
-    else if (command == "list") {
-        if (unicode_argc < 2) {
-            std::cout << "Usage: " << unicode_argv[0] << " list" << std::endl;
-            return 1;
-        }
-    }
+    
+    // Extract parsed values
+    std::string command = parsed_args.command;
+    std::string tag = parsed_args.model_tag;
+    bool force_redownload = parsed_args.force_redownload;
+    std::string power_mode = parsed_args.power_mode;
+    bool got_power_mode = (power_mode != "performance"); // Check if user explicitly set power mode
+    int ctx_length = parsed_args.ctx_length;
 
     // Set process priority to high for better performance
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+    
+    // Handle special case for serve command - use default tag if none provided
+    if (command == "serve" && tag.empty()) {
+        tag = "llama3.2:1b"; // Use default tag
+    }
     
     if (command == "serve" || command == "run"){
         // Configure AMD XRT for the specified power mode
@@ -294,48 +230,13 @@ int main(int argc, char* argv[]) {
         }
 
         if (command == "run") {
-            Runner runner(supported_models, downloader, tag);
+            Runner runner(supported_models, downloader, tag, ctx_length);
             runner.run();
-            // else{
-            //     chat_bot chat(0);
-            //     if (!downloader.is_model_downloaded(tag)) {
-            //         downloader.pull_model(tag);
-            //     }
-            //     nlohmann::json model_info = supported_models.get_model_info(tag);
-            //     chat.load_model(supported_models.get_model_path(tag), model_info);
-            //     std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8conv;
-            //     // read the file
-            //     std::wifstream file(filename);
-            //     if (!file.is_open()) {
-            //         header_print("FLM", "Error: Could not open file: " << utf8conv.to_bytes(filename));
-            //         header_print("FLM", "Please check if the file exists and is readable.");
-            //         return 1;
-            //     }
-            //     file.imbue(std::locale(file.getloc(), new std::codecvt_utf8<wchar_t>));  // treat file content as UTF-8
-            //     std::wstring file_content_original((std::istreambuf_iterator<wchar_t>(file)), std::istreambuf_iterator<wchar_t>());
-            //     std::string file_content = utf8conv.to_bytes(file_content_original);
-            //     file.close();
-            //     // close the file
-            //     chat.start_ttft_timer();
-            //     chat.start_total_timer();
-            //     std::vector<int> prompts = chat.tokenize(file_content, true, "user", true);
-            //     header_print("FLM", "Prefill starts, " << prompts.size() << " tokens");
-            //     std::cout << std::endl;
-            //     chat_meta_info meta_info;
-            //     bool success = chat.insert(meta_info, prompts);
-            //     if (!success){
-            //         return 1;
-            //     }
-            //     chat.stop_ttft_timer();
-            //     chat.generate(meta_info, allowed_length, std::cout);
-            //     chat.stop_total_timer();
-            //     std::cout << std::endl;
-            //     chat.verbose();
-            // }
+
         } else if (command == "serve") {
             // Create the server
             int port = get_server_port();
-            auto server = create_lm_server(supported_models, downloader, tag, port);
+            auto server = create_lm_server(supported_models, downloader, tag, port, ctx_length);
             server->set_max_connections(5);           // Allow up to 2000 concurrent connections
             server->set_io_threads(5);          // Allow up to 5 io threads
             server->set_request_timeout(std::chrono::seconds(600)); // 10 minute timeout for long requests
@@ -403,7 +304,7 @@ int main(int argc, char* argv[]) {
         else {
             // Invalid command, this will be used to show the invalid command
             std::cerr << "Invalid command: " << command << std::endl;
-            print_usage(unicode_argv[0]);
+            std::cerr << "Use --help for usage information" << std::endl;
             return 1;
         }
         // Return 0 if the command is valid
@@ -415,27 +316,20 @@ int main(int argc, char* argv[]) {
     }
 }
 
-void print_usage(const std::string& program_name) {
-    int server_port = get_server_port();
-    std::cout << "Usage: " << program_name << " run <model_tag> [--pmode <mode>]" << std::endl;
-    std::cout << "Usage: " << program_name << " serve <model_tag> [--pmode <mode>]" << std::endl;
-    std::cout << "Usage: " << program_name << " pull <model_tag> [--force]" << std::endl;
-    std::cout << "Usage: " << program_name << " help" << std::endl;
-    std::cout << "Usage: " << program_name << " remove <model_tag>" << std::endl;
-    std::cout << "Usage: " << program_name << " list" << std::endl;
-    std::cout << "Usage: " << program_name << " version" << std::endl;
-    std::cout << "Commands:" << std::endl;
-    std::cout << "  run     - Run the model interactively" << std::endl;
-    std::cout << "  serve   - Start the Ollama-compatible server" << std::endl;
-    std::cout << "  pull    - Download model files if not present" << std::endl;
-    std::cout << "  help    - Show the help" << std::endl;
-    std::cout << "  list    - List all the models" << std::endl;
-    std::cout << "  version - Show the version" << std::endl;
-    std::cout << "  remove  - Remove a model" << std::endl;
-    std::cout << "Options:" << std::endl;
-    std::cout << "  --force - Force re-download even if model exists (for pull command)" << std::endl;
-    std::cout << "  --pmode - Set power mode: default, powersaver, balanced, performance, turbo (for run/serve commands)" << std::endl;
-    std::cout << "Notes:" << std::endl;
-    std::cout << "  - The server port is set with environment variable FLM_SERVE_PORT, current value is " << server_port << std::endl;
-    std::cout << "  - The models directory is set with environment variable FLM_MODEL_PATH, current value is " << get_models_directory() << std::endl;
-}
+
+//int main(int argc, char* argv[])
+//{
+//    std::string tag = "qwen3:0.6b"; // User Input
+//    std::string exe_dir = get_executable_directory();
+//    std::string config_path = exe_dir + "/model_list.json";
+//    std::string models_dir = get_models_directory();
+//    //std::cout << exe_dir << std::endl; // C:\Users\nock9\Projects\FastFlowLM\out
+//    //std::cout << models_dir << std::endl; // C:\Users\nock9\Documents\flm
+//
+//    model_list supported_models(config_path, models_dir);
+//    ModelDownloader downloader(supported_models);
+//    Runner runner(supported_models, downloader, tag);
+//    runner.run();
+//
+//    return 0;
+//}

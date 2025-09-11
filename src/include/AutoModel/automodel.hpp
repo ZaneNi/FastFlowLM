@@ -1,0 +1,293 @@
+/// \file automodel.hpp
+/// \brief automodel class
+/// \author FastFlowLM Team
+/// \date 2025-09-01
+/// \version 0.9.6
+/// \note This is a header file for the auto_model class
+#pragma once
+
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+#include <memory>
+#include <vector>
+#include <iostream>
+#include <string>
+#include <type_traits>
+#include <any>
+#include "typedef.hpp"
+#include "causal_lm.hpp"
+#include "lm_config.hpp"
+#include "llama/llama_npu.hpp"
+#include "qwen/qwen_npu.hpp"
+#include "gemma/gemma_npu.hpp"
+#include "gemma_text/gemma_text_npu.hpp"
+#include "tokenizer/tokenizer.hpp"
+#include "modules/sampler.hpp"
+#include "utils/utils.hpp"
+#include "utils/profiler.hpp"
+#include "tensor_utils/q4_npu_eXpress.hpp"
+#include "npu_utils/npu_utils.hpp"
+#include "minja/chat-template.hpp"
+#include <nlohmann/json.hpp>
+
+
+
+typedef enum {
+    EOT_DETECTED,
+    MAX_LENGTH_REACHED,
+    ERROR_DETECTED
+} stop_reason_t;
+
+inline std::string stop_reason_to_string(stop_reason_t reason){
+    switch (reason){
+        case EOT_DETECTED:
+            return "stop";
+        case MAX_LENGTH_REACHED:
+            return "length";
+        case ERROR_DETECTED:
+            return "error";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+struct chat_meta_info_t {
+    int prompt_tokens;
+    int generated_tokens;
+    uint64_t total_duration; // in nanoseconds
+    uint64_t load_duration; // in nanoseconds
+    uint64_t prefill_duration; // in nanoseconds
+    uint64_t decoding_duration; // in nanoseconds
+    stop_reason_t stop_reason;
+
+	chat_meta_info_t() : prompt_tokens(0), generated_tokens(0), total_duration(0), load_duration(0), prefill_duration(0), decoding_duration(0), stop_reason(EOT_DETECTED) {}
+};
+
+typedef enum {
+	FILE_NAME,
+	BASE64_ENCODED,
+	URL_LINK
+} input_payload_type_t; // so far not used, leave for future use
+
+struct lm_uniform_input_t {
+	std::string prompt;
+	nlohmann::ordered_json messages;
+	std::vector<std::string> images;
+	std::vector<input_payload_type_t> image_payload_types;
+};
+
+using json = nlohmann::ordered_json;
+
+//typedef enum {
+//    EOT_DETECTED,
+//    MAX_LENGTH_REACHED,
+//    ERROR_DETECTED
+//} stop_reason_t;
+//
+//typedef struct {
+//    int prompt_tokens;
+//    int generated_tokens;
+//    uint64_t total_duration; // in nanoseconds
+//    uint64_t load_duration; // in nanoseconds
+//    uint64_t prefill_duration; // in nanoseconds
+//    uint64_t decoding_duration; // in nanoseconds
+//    stop_reason_t stop_reason;
+//} chat_meta_info_t;
+
+
+class AutoModel {
+protected:
+	std::string model_path = "";
+	std::unique_ptr<causal_lm> lm_engine = nullptr;
+	std::unique_ptr<Tokenizer> tokenizer = nullptr;
+	std::unique_ptr<Sampler> sampler = nullptr;
+	std::unique_ptr<Q4NX> q4nx = nullptr;
+	bool is_model_loaded = false;
+	std::string current_model;
+	std::vector<int> token_history;
+	std::unique_ptr<npu_manager> npu = nullptr;
+
+	uint32_t MAX_L = 0;
+	int device_id = 0;
+	int last_token = -1;
+	uint32_t total_tokens = 0;
+	std::unique_ptr<LM_Config> lm_config = nullptr;
+	std::unique_ptr<minja::chat_template> chat_tmpl = nullptr;
+
+	std::string bos_token;
+    std::string eos_token;
+    std::string boi_token;
+    std::string eoi_token;
+    bool has_bos_token;
+    int bos_token_id;
+    std::vector<int> eos_token_ids;
+
+	std::string user_system_prompt = "";
+
+    nlohmann::json extra_context;
+
+	typedef enum {
+		PREFILL_TIME,
+		DECODING_TIME,
+		SAMPLING_TIME,
+		TKOEN_ENCODE_TIME,
+		TKOEN_DECODE_TIME,
+		TTFT_TIME,
+		TOTAL_TIME,
+		PROFILER_TYPE_NUM
+	} profiler_type;
+	std::vector<profiler> profiler_list;
+	time_utils::time_with_unit last_prefill_time;
+
+	void _shared_load_model(std::string model_path, json model_info, int default_context_length = -1);
+	nlohmann::json _shared_setup_tokenizer(std::string model_path);
+
+	bool _shared_insert(chat_meta_info_t& meta_info, std::vector<int>& tokens, void* payload = nullptr);
+	std::string _shared_generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os);
+
+public:
+	//************ Shared by all models *************/
+	virtual ~AutoModel() = default;
+
+	AutoModel(unsigned int device_id = 0);
+	/// \brief Clear the context
+	void clear_context();
+
+	/// \brief Get the current context length
+	/// \return the current context length
+	int get_current_context_length();
+
+	/// \brief Set the sampler
+	/// \param sampler_config the sampler config
+	void set_sampler(sampler_config& sampler_config);
+
+	/// \brief Set the max length
+	/// \param MAX_L the max length 
+	void set_max_length(unsigned int MAX_L);
+
+	/// \brief Get the max length
+	/// \return the max length
+	unsigned int get_max_length() const { return MAX_L; }
+
+	/// \brief Show the model info
+	/// \return the model info
+	std::string show_model_info();
+
+	/// \brief Show the profile
+	/// \return the profile
+	std::string show_profile();
+
+	/// \brief Get the history
+	/// \return the history
+	std::pair<std::string, std::vector<int>> get_history();
+
+	/// \brief Verbose
+	void verbose();
+
+	/// \brief Set the topk
+	/// \param topk the topk
+	void set_topk(int topk);
+
+	/// \brief Set the topp
+	/// \param topp the topp
+	void set_topp(float topp);
+
+	/// \brief Set the temperature
+	/// \param temperature the temperature
+	void set_temperature(float temperature);
+
+	/// \brief Set the repetition penalty
+	/// \param repetition_penalty the repetition penalty
+	void set_repetition_penalty(float repetition_penalty);
+
+	/// \brief Set the frequency penalty
+	/// \param frequency_penalty the frequency penalty
+	void set_frequency_penalty(float frequency_penalty);
+
+	/// \brief Set the frequency penalty window
+	/// \param frequency_penalty_window the frequency penalty window
+	void set_frequency_penalty_window(int frequency_penalty_window);
+
+	/// \brief Start the ttft timer
+	/// \return the ttft timer
+	void start_ttft_timer();
+
+	/// \brief Stop the ttft timer
+	/// \return the ttft timer
+	void stop_ttft_timer();
+
+	/// \brief Reset the total timer
+	/// \return the total timer
+	void reset_total_timer();
+
+	/// \brief Start the total timer
+	/// \return the total timer
+	void start_total_timer();
+
+	/// \brief Stop the total timer
+	/// \return the total timer
+	void stop_total_timer();
+
+
+	inline bool is_normal_token(int token) {
+		if (token == this->bos_token_id){
+			return false;
+		}
+		else {
+			for (auto& id : this->eos_token_ids){
+				if (token == id){
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	inline bool is_eos(int token) {
+		return std::find(this->eos_token_ids.begin(), this->eos_token_ids.end(), token) != this->eos_token_ids.end();
+	}
+
+	//************ Unique for each model *************/
+	
+	virtual void load_model(std::string model_path, json model_info, int default_context_length = -1) {}
+	virtual std::string generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os) = 0;
+
+	/// \brief Insert the tokens
+	/// \param tokens the tokens
+	/// \param is_system_prompt the is system prompt
+	/// \return true if the tokens are inserted successfully, false otherwise
+	virtual bool insert(chat_meta_info_t& meta_info, lm_uniform_input_t& input) = 0;
+
+	/// \brief Generate the tokens with prompt
+	virtual std::string generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os = std::cout) = 0;
+
+	/// \brief Configure a parameter with type-erased value
+	/// \param parameter_name the name of the parameter
+	/// \param value the value to set (can be any type)
+	/// \return true if the parameter was configured successfully, false otherwise
+	virtual bool configure_parameter(std::string parameter_name, const std::any& value) {
+		if (parameter_name == "system_prompt") {
+			try {
+				this->user_system_prompt = std::any_cast<std::string>(value);
+				this->extra_context["user_system_prompt"] = this->user_system_prompt;
+				return true;
+			} catch (const std::bad_any_cast&) {
+				return false;
+			}
+		}
+		return false;
+	}
+
+	/// \brief Convenience template wrapper for type-safe parameter configuration
+	template<typename T>
+	bool configure_parameter(std::string parameter_name, const T& value) {
+		return configure_parameter(parameter_name, std::any(value));
+	}
+
+	virtual std::string apply_chat_template(nlohmann::ordered_json& messages) = 0;
+
+	
+};
+
+

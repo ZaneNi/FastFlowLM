@@ -1,0 +1,74 @@
+/// \file gemma3.hpp
+/// \brief gemma3 class
+/// \author FastFlowLM Team
+/// \date 2025-09-03
+/// \version 0.9.9
+/// \note This is a source file for the gemma3 class
+
+#pragma once
+#include "AutoModel/automodel.hpp"
+#include "base64.hpp"
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+// FFmpeg includes for image processing only
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/frame.h>
+#include <libavutil/pixfmt.h>
+}
+
+
+
+/************              Gemma3_Text_Only            **************/
+class Gemma3_Text_Only : public AutoModel {
+private:
+    std::string current_model = "Gemma3_Text_Only";
+
+    int think_marker_id;
+
+    void setup_tokenizer(std::string model_path);
+
+public:
+    Gemma3_Text_Only(unsigned int device_id);
+
+    void load_model(std::string model_path, json model_inf, int default_context_length = -1) override;
+    //void toggle_enable_think() override;
+    bool insert(chat_meta_info_t& meta_info, lm_uniform_input_t& input) override;
+    std::string generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os) override;
+    std::string generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os = std::cout) override;
+    std::string apply_chat_template(nlohmann::ordered_json& messages) override;
+};
+
+
+/************              Gemma3_4b            **************/
+class Gemma3 : public AutoModel {
+private:
+    std::string current_model = "Gemma3";
+
+    void setup_tokenizer(std::string model_path);
+    
+    // Image processing functionality
+    static bool ffmpeg_initialized;
+    void initialize_ffmpeg();
+    void resolve_source_format_and_range(AVPixelFormat input_format,
+                                        AVPixelFormat &resolved_format,
+                                        int &src_full_range,
+                                        AVColorRange frame_color_range,
+                                        AVCodecID codec_id);
+    bytes load_image(const std::string& filename);
+    bytes load_image_base64(const std::string& base64_string);
+    buffer<bf16> preprocess_image(bytes& image);
+
+public:
+    Gemma3(unsigned int device_id);
+
+    void load_model(std::string model_path, json model_inf, int default_context_length = -1) override;
+    //void toggle_enable_think() override;
+    bool insert(chat_meta_info_t& meta_info, lm_uniform_input_t& input) override;
+    std::string generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os) override;
+    std::string generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os = std::cout) override;
+    std::string apply_chat_template(nlohmann::ordered_json& messages) override;
+};

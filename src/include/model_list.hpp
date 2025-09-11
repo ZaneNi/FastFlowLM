@@ -2,7 +2,7 @@
 /// \brief model_list class
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.7
+/// \version 0.9.9
 /// \note This class is used to manage the model list.
 #pragma once
 #include "nlohmann/json.hpp"
@@ -12,7 +12,7 @@
 #include <vector>
 #include "utils/utils.hpp"
 
-#define __FLM_VERSION__ "0.9.7"
+#define __FLM_VERSION__ "0.9.9"
 
 /// \note This class is used to manage the model list.
 class model_list {
@@ -151,6 +151,33 @@ class model_list {
                     response["models"].push_back(model_entry);
                 }
             }
+            return response;
+        }
+
+        /// \brief get all the models
+        /// \return all the models in json
+        nlohmann::json get_all_models_openai() {
+            nlohmann::json response = {
+                {"object", "list"},
+                {"data", nlohmann::json::array()},
+                { "object", "list" }
+            };
+
+            std::time_t now = std::time(nullptr);
+
+            for (const auto& [model_type, model_subset] : this->config["models"].items()) {
+                for (const auto& [size, model_info] : model_subset.items()) {
+                    // id uses the same "type:size" convention; created uses current epoch seconds
+                    nlohmann::json model_entry = {
+                        {"id", model_type + ":" + size},
+                        {"object", "model"},
+                        {"created", static_cast<long long>(now)},
+                        {"owned_by", "organization-owner"}
+                    };
+                    response["data"].push_back(model_entry);
+                }
+            }
+
             return response;
         }
 
