@@ -29,7 +29,7 @@ You must have AMD NPU driver **version 32.0.203.258 or later** installed for Fas
 
 ## 💾 Installation (Windows)
 
-A packaged Windows installer is available here:  
+A packaged FLM Windows installer is available here:  
 [**flm-setup.exe**](https://github.com/FastFlowLM/FastFlowLM/releases/latest/download/flm-setup.exe)
 
 If you see **"Windows protected your PC"**, click **More info**, then select **Run anyway**.
@@ -67,5 +67,8 @@ After installation, do a quick test to see if FastFlowLM is properly installed. 
 flm run llama3.2:1b
 ```
 
-> Requires internet access to HuggingFace to pull (download) the optimized model kernel. The model will be automatically downloaded to the folder: ``C:\Users\<USER>\Documents\flm\models\``. 
->⚠️ If HuggingFace is not directly accessible in your region, you can manually download the model (e.g., [hf-mirror](https://hf-mirror.com/models?search=fastflowlm)) and place it in the directory.
+> **Notes:**
+> - Internet access to HuggingFace is required to download the optimized model kernels.  
+> - By default, models are stored in: `C:\Users\<USER>\Documents\flm\models\`  
+> - During installation, you can select a different base folder (e.g., if you choose `C:\Users\<USER>\flm`, models will be saved under `C:\Users\<USER>\flm\models\`).
+> - ⚠️ If HuggingFace is not directly accessible in your region, you can manually download the model (e.g., [hf-mirror](https://hf-mirror.com/models?search=fastflowlm)) and place it in the directory.

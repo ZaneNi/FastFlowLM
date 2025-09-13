@@ -24,7 +24,7 @@ Run large language models — now with **Vision support** — on AMD Ryzen™ AI
 | 🔽 **[Download](https://github.com/FastFlowLM/FastFlowLM/releases/latest/download/flm-setup.exe)** | 📊 **[Benchmarks](https://docs.fastflowlm.com/benchmarks/)** | 📦 **[Model List](https://docs.fastflowlm.com/models/)** |
 
 
-| 📖 **[Docs](https://docs.fastflowlm.com)** | 📺 **[Demos](https://www.youtube.com/@FastFlowLM-YT/playlists)** | 🧪 **[Test Drive](https://github.com/FastFlowLM/FastFlowLM?tab=readme-ov-file#-remote-test-drive)** | 💬 **[Discord](https://discord.gg/z24t23HsHF)** |
+| 📖 **[Docs](https://docs.fastflowlm.com)** | 📺 **[Demos](https://www.youtube.com/@FastFlowLM-YT/playlists)** | 🧪 **[Test Drive](https://docs.fastflowlm.com/#-test-drive-remote-demo)** | 💬 **[Discord](https://discord.gg/z24t23HsHF)** |
 
 ---
 
@@ -40,7 +40,11 @@ After installation, open **PowerShell**. To run a model in terminal (CLI Mode):
 ```powershell
 flm run llama3.2:1b
 ```
-> Requires internet access to HuggingFace to pull (download) the optimized model kernel. The model will be downloaded to the folder: ``C:\Users\<USER>\Documents\flm\models\``. ⚠️ If HuggingFace is not directly accessible in your region, you can manually download the model and place it in this directory.
+> **Notes:**
+> - Internet access to HuggingFace is required to download the optimized model kernels.  
+> - By default, models are stored in: `C:\Users\<USER>\Documents\flm\models\`  
+> - During installation, you can select a different base folder (e.g., if you choose `C:\Users\<USER>\flm`, models will be saved under `C:\Users\<USER>\flm\models\`).  
+> - ⚠️ If HuggingFace is not accessible in your region, manually download the model and place it in the chosen directory.   
 
 To start the local server (Server Mode):
 ```powershell
@@ -72,35 +76,11 @@ No model rewrites, no tuning — it just works.
 
 ---
 
-## 🧪 Remote Test Drive
-
-🚀 Don’t have a Ryzen™ AI PC? Instantly try FastFlowLM on a live AMD Ryzen™ AI 5 340 NPU (in our office) with 32 GB memory ([spec](https://www.amazon.com/4X4-BOX-AI340-Display-Support-Copilot/dp/B0F2GFLF67/ref=sr_1_5?crid=1X16RDUCQ2497&dib=eyJ2IjoiMSJ9.C5GS4xMl_kkJ7Yr6dNFi6g.Dfj_l9Dk1yuIBjppqmKSqNAAPQc1F4Mu3zJ9-MDlszw&dib_tag=se&keywords=4x4+box+ai340&qid=1752010554&sprefix=www.amazon.com%2F4X4-BOX-AI340%2Caps%2C176&sr=8-5)) — no setup needed.  
-
-✨ Now with **Gemma3:4b (the first NPU-only VLM!)** supported here.  
-
-🌐 **Launch Now**: [https://open-webui.testdrive-fastflowlm.com/](https://open-webui.testdrive-fastflowlm.com/)  
-🔐 **Login**: `guest@flm.npu`  
-🔑 **Password**: `0000`
-
-📺 [**Watch this short video**](https://youtu.be/0AhkX2ZLu7Y?list=PLf87s9UUZrJqcaO6Vrl4YAmkofdGkvlom) to see how to try the remote demo in just a few clicks.
-
-> Alternatively, **sign up** with your own credentials instead of using the shared guest account.
-> ⚠️ Some universities or companies may **block access** to the test drive site. If it doesn't load over Wi-Fi, try switching to a **cellular network**.  
-> Real-time demo powered by **FastFlowLM + Open WebUI** — no downloads, no installs.  
-> Try optimized LLM models: `gemma3:4b`, `qwen3:4b`, etc. — all accelerated on NPU.
-
-⚠️ **Please note**:  
-- FastFlowLM is designed for **single-user local use**. This remote demo machine may experience short wait times when **multiple users** access it concurrently — please be patient.
-- When switching models, it may take longer time to replace the model in memory.
-- Large prompts and VLM (gemma3:4b) may take longer — but it works! 🙂
-
----
-
 ## 📄 License
 
 - All orchestration code and CLI tools are open-source under the [MIT License](./LICENSE_RUNTIME.txt).
 - NPU-accelerated kernels are **proprietary binaries**, free for **non-commercial use** only — see [LICENSE_BINARY.txt](./LICENSE_BINARY.txt) and [TERMS.md](./TERMS.md) for details.
-- **Non-commercial users need to acknowledge FastFlowLM** by adding this line to your README or project page:  
+- **Non-commercial users:** Please acknowledge FastFlowLM in your README/project page:
   ```
   Powered by [FastFlowLM](https://github.com/FastFlowLM/FastFlowLM)
   ```
