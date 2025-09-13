@@ -1,10 +1,10 @@
 ---
-title: CLI (Interactive Mode)
+title: CLI Mode
 nav_order: 1
 parent: Instructions
 ---
 
-# ⚡ CLI (Interactive Mode)
+# ⚡ CLI Mode
 
 FastFlowLM offers a terminal-based interactive experience, similar to Ollama, but fully offline and accelerated excusively on AMD NPUs.
 
@@ -153,7 +153,7 @@ flm serve llama3.2:1b
 
 ---
 
-## 🧠 Commands Inside Interactive Mode
+## 🧠 Commands Inside CLI Mode
 
 Once inside the CLI, use the following commands:
 
@@ -249,7 +249,7 @@ Display all available models and locally downloaded models:
 
 ---
 
-### 👋 Quit Interactive Mode
+### 👋 Quit CLI Mode
 
 ```text
 /bye

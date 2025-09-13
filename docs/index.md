@@ -41,7 +41,7 @@ Fast, power-efficient, and 100% offline.
 Quick 5‑minute setup guide for Windows.
 
 ### 🛠️ [Instructions](instructions/index.md)
-Run FastFlowLM using the CLI (interactive mode) or local server mode.
+Run FastFlowLM using the CLI mode or server mode.
 
 ### 📊 [Benchmarks](benchmarks/index.md)
 Real-time performance comparisons vs AMD’s official stack and other tools.

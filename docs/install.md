@@ -34,7 +34,7 @@ A packaged Windows installer is available here:
 
 If you see **"Windows protected your PC"**, click **More info**, then select **Run anyway**.
 
-📺 [Watch the quick start video](https://www.youtube.com/watch?v=YkwFQ9-cc3I&list=PLf87s9UUZrJp4r3JM4NliPEsYuJNNqFAJ)
+📺 [**Watch the quick start video**](https://www.youtube.com/watch?v=mYOfDNkyBII)
 
 For version history and changelog, see the [release notes](https://github.com/FastFlowLM/FastFlowLM/releases/).
 

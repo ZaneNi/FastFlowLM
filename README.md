@@ -69,7 +69,7 @@ From the new **Gemma3:4b vision (first NPU-only VLM)** model to the **think/no_t
 🔐 **Login**: `guest@flm.npu`  
 🔑 **Password**: `0000`
 
-📺 [Watch this short video](https://youtu.be/0AhkX2ZLu7Y?list=PLf87s9UUZrJqcaO6Vrl4YAmkofdGkvlom) to see how to try the remote demo in just a few clicks.
+📺 [**Watch this short video**](https://youtu.be/0AhkX2ZLu7Y?list=PLf87s9UUZrJqcaO6Vrl4YAmkofdGkvlom) to see how to try the remote demo in just a few clicks.
 
 > Alternatively, **sign up** with your own credentials instead of using the shared guest account.
 > ⚠️ Some universities or companies may **block access** to the test drive site. If it doesn't load over Wi-Fi, try switching to a **cellular network**.  
@@ -87,17 +87,17 @@ From the new **Gemma3:4b vision (first NPU-only VLM)** model to the **think/no_t
 
 A packaged Windows installer is available here: [**flm-setup.exe**](https://github.com/FastFlowLM/FastFlowLM/releases/latest/download/flm-setup.exe). For more details, see the [release notes](https://github.com/FastFlowLM/FastFlowLM/releases/).
 
-📺 [Watch the quick start video](https://youtu.be/YkwFQ9-cc3I?list=PLf87s9UUZrJqcaO6Vrl4YAmkofdGkvlom)
+📺 [**Watch the quick start video**](https://www.youtube.com/watch?v=mYOfDNkyBII)
 
 > ⚠️ Ensure NPU driver is **32.0.203.258** or later (check via Task Manager→Performance→NPU or Device Manager) — [Driver Download](https://www.amd.com/en/support).
 
-After installation, open **PowerShell**. To run a model in terminal (CLI or Interactive Mode):
+After installation, open **PowerShell**. To run a model in terminal (CLI Mode):
 ```
 flm run llama3.2:1b
 ```
 > Requires internet access to HuggingFace to pull (download) the optimized model kernel. The model will be downloaded to the folder: ``C:\Users\<USER>\Documents\flm\models\``. ⚠️ If HuggingFace is not directly accessible in your region, you can manually download the model and place it in this directory.
 
-To start the local REST API server (Server Mode):
+To start the local server (Server Mode):
 ```
 flm serve llama3.2:1b
 ```
@@ -121,9 +121,9 @@ For detailed instructions, click [Documentation](https://docs.fastflowlm.com/).
 
 ---
 
-## 🖼️ Vision Support for Gemma3:4b (VLM)  
+## 🖼️ Vision Support 
 
-FastFlowLM now supports **vision-language inference** with **Gemma3:4b**. ⚡ Quick start:  
+FastFlowLM now supports **vision-language inference** (e.g., **Gemma3:4b**). ⚡ Quick start:  
 
 After installation, open **PowerShell** and run:
 ```
@@ -148,7 +148,7 @@ Check the full list here:
 
 ## 🧠 Local AI on Your NPU
 
-FastFlowLM makes it easy to run cutting-edge **LLMs** (and now **VLMs** too ) locally with:
+FLM makes it easy to run cutting-edge **LLMs** (and now **VLMs**) locally with:
 - ⚡ Fast and low power
 - 🧰 Simple CLI and API
 - 🔐 Fully private and offline
@@ -161,7 +161,7 @@ No model rewrites, no tuning — it just works.
 
 - **Runs fully on AMD Ryzen™ AI NPU** — no GPU or CPU load  
 - **Developer-first flow** — like Ollama, but optimized for NPU  
-- **Support for long context windows** — up to 128k tokens (e.g., LLaMA 3.1/3.2, Gemma3:4B)  
+- **Support for long context windows** — up to 256k tokens (e.g., Qwen3-4B-Thinking-2507)  
 - **No low-level tuning required** — You focus on your app, we handle the rest
 
 ---
@@ -194,10 +194,10 @@ No model rewrites, no tuning — it just works.
 
 ## 🛠️ Instructions
 
-[Documentation and examples](https://docs.fastflowlm.com/). Like Ollama, you can:
-- Load and run models locally via CLI (Interactive Mode)
-- Integrate into your app via a simple REST API via a local server (Server Mode)
-> Compatible with tools like **Microsoft AI Toolkit**, **Open WebUI**, and more.
+[**Documentation and examples**](https://docs.fastflowlm.com/). Like Ollama, you can:
+- Load and run models locally via CLI Mode
+- Integrate into your app via a simple OpenAI API via a local server (Server Mode)
+> Compatible with tools like **Open WebUI**, **Microsoft AI Toolkit**, and more.
 
 ---
 
