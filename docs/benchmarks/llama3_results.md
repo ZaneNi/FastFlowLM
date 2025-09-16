@@ -7,7 +7,7 @@ nav_order: 1
 ## ⚡ Performance and Efficiency Benchmarks
 
 <!-- This section reports the performance and power usage of LLaMA 3.x on NPU (FastFlowLM, or FLM), NPU (Ryzen™ AI Software, or RAI), iGPU (LM Studio), and CPU (Ollama). -->
-This section reports the performance and power usage of Qwen 3 on NPU (FastFlowLM, or FLM).
+This section reports the performance of LLaMA 3.x on NPU with FastFlowLM (FLM).
 
 > **Note:** 
 - Results are based on FastFlowLM v0.9.8.  

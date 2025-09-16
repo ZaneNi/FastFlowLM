@@ -6,7 +6,7 @@ nav_order: 3
 
 ## ⚡ Performance and Efficiency Benchmarks
 
-This section reports the performance and power usage of Gemma 3 on NPU (FastFlowLM, or FLM).
+This section reports the performance on NPU with FastFlowLM (FLM).
 
 > **Note:** 
 - Results are based on FastFlowLM v0.9.8.
