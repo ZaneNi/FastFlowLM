@@ -13,7 +13,9 @@
 Run large language models — now with **Vision support** — on AMD Ryzen™ AI NPUs in minutes.  
 **No GPU required. Faster and over 10× more power-efficient. Context lengths up to 256k tokens.**
 
-✨ *From Idle Silicon to Instant Power — FastFlowLM Makes Ryzen™ AI Shine.*
+📦 **The only out-of-box, NPU-first runtime built exclusively for Ryzen™ AI.**  
+🤝 **Think Ollama — but deeply optimized for NPUs.**  
+✨ **From Idle Silicon to Instant Power — FastFlowLM Makes Ryzen™ AI Shine.**
 
 > FastFlowLM (FLM) supports all Ryzen™ AI Series chips with XDNA2 NPUs (Strix, Strix Halo, and Kraken).
 
