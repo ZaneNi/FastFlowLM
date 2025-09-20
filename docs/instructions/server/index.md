@@ -30,6 +30,7 @@ flm serve llama3.2:1b --ctx-len 8192
 ```
 
 > Internally, FLM enforces a minimum context length of 512. If you specify a smaller value, it will automatically be adjusted up to 512.  
+> - If you enter a context length that is not a power of 2, FLM automatically rounds it up to the nearest power of 2. For example: input `8000` → adjusted to `8192`.  
 
 ## Set Request Queue in Server Mode
 
@@ -47,8 +48,8 @@ flm serve llama3.2:1b --q-len 20
 
 ## Customizable Socket Connections in Server Mode
 
-Set the maximum number of concurrent socket connections to control network resource usage.
-👉 Recommended: set sockets **equal to or greater than** the queue length.
+Set the maximum number of concurrent socket connections to control network resource usage.  
+👉 *Recommended:* set sockets **equal to or greater than** the queue length.  
 
 - **Default:** 10  
 - **Change with:** `--socket` (or `-s`)  

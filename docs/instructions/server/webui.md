@@ -4,6 +4,14 @@ nav_order: 2
 parent: Local Server (Server Mode)
 ---
 
+# 📑 Table of Contents
+
+- **[🧩 Run Open WebUI with FastFlowLM (Windows, YAML Method)](#-run-open-webui-with-fastflowlm-windows-yaml-method)**
+- **[🧪 More Examples](#-more-examples)**
+  - [🤖 Example: Multi Models Comparison Enabled by FLM Queuing (v0.9.10 or beyond)](#-example-multi-models-comparison-enabled-by-flm-queuing-v0910-or-beyond)
+
+---
+
 # 🧩 Run Open WebUI with FastFlowLM (Windows, YAML Method)
 
 This guide walks you through using `docker-compose.yaml` to run Open WebUI connected to a local FastFlowLM instance on Windows.
@@ -134,6 +142,14 @@ This removes the container and persistent volume data.
 
 ---
 
+## 🧼 Step 7: Update Open WebUI
+
+```powershell
+docker compose pull
+```
+
+---
+
 ## 🧠 Notes
 
 - Want login? Set `WEBUI_AUTH=true`
@@ -150,5 +166,55 @@ This removes the container and persistent volume data.
 > - **Chat Tags Auto-Generation**
 > 
 > Toggle them **off**, then refresh the page.
+
+---
+
+# 🧪 More Examples
+
+## 🤖 Example: Multi Models Comparision Enabled by FLM Queuing (v0.9.10 or beyond)
+
+A step-by-step guide to launching FastFlowLM and interacting with multiple models via Open WebUI.
+
+---
+
+### 🌐 Step 1: Run Open WebUI with FastFlowLM
+
+Follow the quick setup at [here](https://docs.fastflowlm.com/instructions/server/).
+
+---
+
+### 🧩 Step 2:  Select and Add Models
+
+At the top-right corner of the WebUI:
+
+- Choose a model to begin (e.g., `llama3.2:1b`)
+- Click **➕** to add other models, e.g.:
+	- `qwen3:0.6b`
+	- `gemma3:1b`
+
+	You’ll now see several models listed. That means each one can answer your prompt.
+
+---
+
+### 💬 Step 3: Interact with Models
+
+Type anything you're curious about in the input box.
+
+⚠️ Please note:
+
+- Each model will reply in sequences (not all at once)..
+- The flm server dynamically loads each model based on your selection.
+
+---
+
+### 🎯 Step 4: Select or Merge
+
+After receiving replies from multiple models, choose how you'd like to continue:
+
+- ✅ **Use the Best Response**  
+  Select the answer that best meets your expectations. That response will become the active context for your next question.
+
+- 🔗 **Merge All Responses**  
+  Combine insights from all models and continue the conversation using your preferred model. This lets you synthesize multiple perspectives into a unified thread.
 
 ---

@@ -102,7 +102,9 @@ flm serve gemma3:4b --pmode balanced
 
 ### 🎛️ Set Context Length at Launch
 
-Set the context length with `--ctx-len` (or `-c`).
+The default context length for each model can be found [here](https://docs.fastflowlm.com/models/).   
+
+Set the context length with `--ctx-len` (or `-c`).  
 
 In PowerShell, run:
 

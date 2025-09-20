@@ -4,7 +4,22 @@ nav_order: 1
 parent: Local Server (Server Mode)
 ---
 
-## 📡 How Does the OpenAI Standard Work?
+# 📑 Table of Contents
+
+- **[📡 How Does the OpenAI Standard Work?](#-how-does-the-openai-standard-work)**  
+- **[📚 Developer Support](#-developer-support)**  
+- **[🚀 Quick Test: Use OpenAI SDK with FastFlowLM in Python](#-quick-test-use-openai-sdk-with-fastflowlm-in-python)**  
+- **[🧪 More Examples](#-more-examples)**
+  - [Example: Multi-turn Chat (Conversation History)](#-example-multi-turn-chat-conversation-history)
+  - [Example: Streamed Output (Real-Time Response)](#-example-streamed-output-real-time-response)
+  - [Example: Use a File as the Prompt](#-example-use-a-file-as-the-prompt)
+  - [Example: Batch Requests (Multiple Prompts)](#-example-batch-requests-multiple-prompts)
+  - [Example: Use Temperature, Top-p, and Presence Penalty](#-example-use-temperature-top-p-and-presence-penalty)
+  - [Example: Multi-Image Input](#-example-multi-image-input)
+
+---
+
+# 📡 How Does the OpenAI Standard Work?
 
 The **OpenAI API standard** defines a simple and powerful way for applications to communicate with language models — whether running in the cloud or locally.
 
@@ -20,7 +35,7 @@ This structure makes it easy to build multi-turn conversations with consistent b
 
 ---
 
-### 📚 Developer Support
+## 📚 Developer Support
 
 OpenAI provides [official libraries](https://platform.openai.com/docs/libraries/python-library#install-an-official-sdk) in multiple programming languages to help developers follow the standard easily: **Python**, **JavaScript**, **.NET**, **Java**, and **Go**.
 
@@ -28,13 +43,13 @@ These libraries make it easy to send prompts, receive completions, and integrate
 
 ---
 
-## 🚀 Quick Test: Use OpenAI SDK with FastFlowLM in Python
+# 🚀 Quick Test: Use OpenAI SDK with FastFlowLM in Python
 
 You can try this instantly in any Python environment — including Jupyter Notebook. Follow the steps below by copying each block into a notebook cell.
 
 ---
 
-### ✅ Step 0: Start FastFlowLM in Server Mode
+## ✅ Step 0: Start FastFlowLM in Server Mode
 
 Open PowerShell or terminal and launch the model server:
 
@@ -46,7 +61,7 @@ flm serve llama3.2:1b
 
 ---
 
-### ✅ Step 1: Install the OpenAI Python SDK
+## ✅ Step 1: Install the OpenAI Python SDK
 
 ```python
 pip install --upgrade openai
@@ -54,7 +69,7 @@ pip install --upgrade openai
 
 ---
 
-### ✅ Step 2: Send a Chat Request to FastFlowLM
+## ✅ Step 2: Send a Chat Request to FastFlowLM
 
 ```python
 # Quick Start
@@ -86,7 +101,7 @@ gc.collect()
 
 ---
 
-### 📌 Notes
+## 📌 Notes
 
 - 🧠 You can replace `"llama3.2:1b"` with any other model available via `flm run` or `flm pull`.
 - 🖥 Make sure the FastFlowLM server is running in the background (`flm serve ...`).
@@ -97,14 +112,14 @@ gc.collect()
 
 ---
 
-## 🧪 More Examples
+# 🧪 More Examples
 
 🚀 Ah — that was easy, right?  
 Now let’s kick things up a notch with some awesome next-level examples!
 
 ---
 
-### 💬 Example: Multi-turn Chat (Conversation History)
+## 💬 Example: Multi-turn Chat (Conversation History)
 
 Use this pattern when you want the model to remember previous turns in the conversation:
 
@@ -142,7 +157,7 @@ gc.collect()
 
 ---
 
-### 🔁 Example: Streamed Output (Real-Time Response)
+## 🔁 Example: Streamed Output (Real-Time Response)
 
 Display the model’s output as it generates, token-by-token:
 
@@ -179,7 +194,7 @@ gc.collect()
 
 ---
 
-### 📄 Example: Use a File as the Prompt
+## 📄 Example: Use a File as the Prompt
 
 You can load a full `.txt` file as a prompt — useful for long documents or testing large context windows.
 
@@ -214,7 +229,7 @@ gc.collect()
 
 ---
 
-### 📊 Example: Batch Requests (Multiple Prompts)
+## 📊 Example: Batch Requests (Multiple Prompts)
 
 Loop over a list of prompts and generate answers — useful for eval or bulk testing.
 
@@ -248,7 +263,7 @@ gc.collect()
 
 ---
 
-### 🧬 Example: Use Temperature, Top-p, and Presence Penalty
+## 🧬 Example: Use Temperature, Top-p, and Presence Penalty
 
 Control randomness and creativity — for brainstorming or open-ended tasks.
 
@@ -279,7 +294,7 @@ gc.collect()
 
 ---
 
-### 🖼️ Example: Multi-Image Input
+## 🖼️ Example: Multi-Image Input
 
 Send multiple images together with a text prompt.  
 The model will analyze them, compare, and respond with reasoning.
