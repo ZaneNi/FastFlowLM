@@ -1,5 +1,5 @@
 ---
-title: OpenAI API Standard
+title: OpenAI API + Examples
 nav_order: 1
 parent: Local Server (Server Mode)
 ---
@@ -49,7 +49,7 @@ flm serve llama3.2:1b
 ### ✅ Step 1: Install the OpenAI Python SDK
 
 ```python
-!pip install --upgrade openai
+pip install --upgrade openai
 ```
 
 ---

@@ -102,6 +102,8 @@ flm serve gemma3:4b --pmode balanced
 
 ### 🎛️ Set Context Length at Launch
 
+Set the context length with `--ctx-len` (or `-c`).
+
 In PowerShell, run:
 
 For **CLI mode**:
@@ -114,13 +116,32 @@ For **Server mode**:
 flm serve llama3.2:1b --ctx-len 8192
 ```
 
-> Internally, FLM enforces a minimum context length of 512. If you specify a smaller value, it will automatically be adjusted up to 512.
+> - Internally, FLM enforces a minimum context length of 512. If you specify a smaller value, it will automatically be adjusted up to 512.  
+> - If you enter a context length that is not a power of 2, FLM automatically rounds it up to the nearest power of 2. For example: input `8000` → adjusted to `8192`.
+
+---
+
+### Preemption
+
+Preemption allows high-priority tasks to interrupt ongoing NPU jobs, improving responsiveness for critical workloads. To enable preemption:
+
+For **CLI mode**:
+```powershell
+flm run llama3.2:1b --preemption 1
+```
+
+For **Server mode**:
+```powershell
+flm serve llama3.2:1b --preemption 1
+```
+
+> ⚠️ Note: Preemption is for **engineering testing/optimization** only. It requires a special driver + toolkit and is **not for public use**.
 
 ---
 
 ## 💻 Commands Inside CLI Mode
 
-Once inside the CLI, use the following commands. System commands always start with "/" (e.g., "/help").
+Once inside the CLI, use the following commands. System commands always start with `/` (e.g., `/help`).
 
 ---
 

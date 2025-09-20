@@ -1,5 +1,5 @@
 ---
-title: Websearch with LangChain
+title: Web Search with LangChain
 nav_order: 6
 parent: Local Server (Server Mode)
 ---
