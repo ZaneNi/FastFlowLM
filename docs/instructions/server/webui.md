@@ -181,6 +181,8 @@ Well done 🎉 — now let’s explore more apps together!
 
 A step-by-step guide to launching FastFlowLM and interacting with multiple models via Open WebUI.
 
+[🎬 Watch the Teaser Video](https://www.youtube.com/watch?v=vUyt2MZFDm0)
+
 ---
 
 ### 🌐 Step 1: Run Open WebUI with FastFlowLM
@@ -228,6 +230,8 @@ After receiving replies from multiple models, choose how you'd like to continue:
 ## 🌐 Example: Agentic AI Web Search with FastFlowLM
 
 Step-by-step guide to powering Agentic AI web search in Open WebUI — NPU-only, lightning-fast, with Google PSE + FLM.
+
+[🎬 Watch the Teaser Video](https://www.youtube.com/watch?v=wHO8ektTlik)
 
 ---
 
