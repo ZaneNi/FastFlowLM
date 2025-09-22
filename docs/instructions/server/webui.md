@@ -10,7 +10,8 @@ parent: Local Server (Server Mode)
 - **[🧪 More Examples](#-more-examples)**
   - [ Example: Multi Models Comparision Enabled by FLM Queuing](#-example-multi-models-comparision-enabled-by-flm-queuing)  
   - [ Example: Agentic AI Web Search with FastFlowLM](#-example-agentic-ai-web-search-with-fastflowlm)  
-  - [ Local Private Database with RAG + FastFlowLM](#️-local-private-database-with-rag--fastflowlm)
+  - [ Local Private Database with RAG + FastFlowLM](#️-example-local-private-database-with-rag--fastflowlm)
+  
 ---
 
 # 🧩 Run Open WebUI with FastFlowLM
@@ -280,7 +281,7 @@ With your **API Key** and **Search Engine ID** from Step 1, follow these steps:
 
 ---
 
-## 🗄️ Local Private Database with RAG + FastFlowLM  
+## 🗄️ Example: Local Private Database with RAG + FastFlowLM  
 
 This example walks you through setting up a **local, private knowledge base** using **Retrieval-Augmented Generation (RAG)** powered by FastFlowLM.  
 
