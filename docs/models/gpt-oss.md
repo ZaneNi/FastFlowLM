@@ -30,7 +30,7 @@ flm run gpt-oss:20b
 > 📝 NOTE
 
 > - **Memory Requirements**  
-   ⚠️ **Note**: Running `gpt-oss:20b` currently requires a system with **48 GB RAM or more**. The model itself uses approximately 16.4 GB of memory in FLM, and there is an internal cap (~15.6 GB) on NPU memory allocation enforced by AMD, which makes only about half of the total system RAM available to the NPU. On 32 GB machines, this limitation prevents the model from loading successfully, so we recommend using 48 GB or more RAM for a smooth experience.
+   ⚠️ **Note**: Running `gpt-oss:20b` may need a system with **> 32 GB RAM**. The model itself uses ~15.1 GB of memory in FLM, and there is an internal cap (~15.6 GB) from on NPU memory allocation enforced by AMD/Microsoft, which makes only about half of the total system RAM available to the NPU. **On 32 GB machines, it sometimes works sometimes not**, so we recommend more RAM for a smooth experience.
 
 > - **Open WebUI Patch**  
    A community patch is available to run `gpt-oss` seamlessly with Open WebUI using the OpenAI Harmony template with FLM: 👉 [https://openwebui.com/f/alfredxu/harmony2think_filter_flm](https://openwebui.com/f/alfredxu/harmony2think_filter_flm). This patch enables GPT-OSS in FLM to integrate smoothly with browser-based UIs while preserving compatibility with the OpenAI API format.
