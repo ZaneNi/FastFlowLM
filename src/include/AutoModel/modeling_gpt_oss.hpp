@@ -13,7 +13,7 @@ private:
 
     bool enable_think = true;
 
-    std::string reasoning_effort = "low";
+    std::string reasoning_effort = "medium";
     std::string model_identity = "You are ChatGPT, a large language model trained by OpenAI.";
     std::string role = "developer";
 

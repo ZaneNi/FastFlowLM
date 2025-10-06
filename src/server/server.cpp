@@ -106,67 +106,6 @@ void brief_print_message_request(nlohmann::json request) {
         }
     }
 
-    // convert openai type to ollama type
-    //if (request.contains("messages")) {
-    //    nlohmann::json normalized_messages = nlohmann::json::array();
-
-    //    for (auto& message : request["messages"]) {
-    //        std::string merged_text;
-    //        nlohmann::ordered_json::array_t merged_images;
-
-    //        // Handle string-based content
-    //        if (message["content"].is_string()) {
-    //            merged_text = message["content"].get<std::string>();
-    //        }
-
-    //        // Handle array-based structured content
-    //        else if (message["content"].is_array()) {
-    //            for (auto& contentItem : message["content"]) {
-    //                if (contentItem.contains("type") && contentItem["type"] == "text") {
-    //                    merged_text += contentItem["text"].get<std::string>();
-    //                }
-    //                else if (contentItem.contains("type") && contentItem["type"] == "image_url") {
-    //                    std::string image_url = contentItem["image_url"]["url"].get<std::string>();
-    //                    const std::string prefix = "data:image/png;base64,";
-    //                    if (image_url.rfind(prefix, 0) == 0) {
-    //                        image_url = image_url.substr(prefix.length());
-    //                    }
-    //                    merged_images.push_back(image_url);
-    //                }
-    //            }
-    //        }
-
-    //        // Handle legacy "images" array
-    //        if (message.contains("images")) {
-    //            for (auto& image : message["images"]) {
-    //                merged_images.push_back(image.get<std::string>());
-    //            }
-    //        }
-
-    //        // Truncate if needed
-    //        if (merged_text.size() > 20) {
-    //            merged_text = utf8_truncate_middle(merged_text, 10, 10);
-    //        }
-    //        for (auto& image : merged_images) {
-    //            if (image.size() > 20) {
-    //                image = utf8_truncate_middle(image.get<std::string>(), 10, 10);
-    //            }
-    //        }
-
-    //        // Build normalized message
-    //        nlohmann::json normalized_message;
-    //        normalized_message["role"] = message["role"];
-    //        normalized_message["content"] = merged_text;
-    //        normalized_message["images"] = merged_images;
-
-    //        normalized_messages.push_back(normalized_message);
-    //    }
-
-    //    // Replace original messages with normalized ones
-    //    request["messages"] = normalized_messages;
-    //}
-
-
     if (request.contains("message")){
         std::string content = request["message"]["content"].get<std::string>();
         if (content.size() > 20) {

@@ -145,6 +145,18 @@ inline time_with_unit re_unit(time_with_unit time){
 
 namespace utils {
 
+inline void enable_ansi_on_windows_once() {
+    static bool done = false;
+    if (done) return;
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut == INVALID_HANDLE_VALUE) return;
+    DWORD mode = 0;
+    if (!GetConsoleMode(hOut, &mode)) return;
+    mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(hOut, mode);
+    done = true;
+}
+
 /// \brief get a random float
 /// \param min the minimum value
 /// \param max the maximum value

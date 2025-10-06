@@ -365,7 +365,7 @@ void Runner::cmd_set(std::vector<std::string>& input_list) {
         std::cout << "  /set sys-msg [value] - set the system message" << std::endl;
         std::cout << "  /set ctx-len [value] - set the max context length" << std::endl;
         std::cout << "  /set gen-lim [value] - Limit tokens generated per round" << std::endl;
-        std::cout << "  /set r-eff [low|medium|high] - set the reasoning effort level (GPT-OSS only, default = low)" << std::endl;
+        std::cout << "  /set r-eff [low|medium|high] - set the reasoning effort level (GPT-OSS only, default = medium)" << std::endl;
         return;
     }
     
@@ -430,7 +430,7 @@ void Runner::cmd_set(std::vector<std::string>& input_list) {
         std::cout << "  /set freq-pen [value] - set the frequency penalty" << std::endl;
         std::cout << "  /set sys-msg [value] - set the system message" << std::endl;
         std::cout << "  /set gen-lim [value] - Limit tokens generated per round" << std::endl;
-        std::cout << "  /set r-eff [low|medium|high] - set the reasoning effort level (GPT-OSS only, default = low)" << std::endl;
+        std::cout << "  /set r-eff [low|medium|high] - set the reasoning effort level (GPT-OSS only, default = medium)" << std::endl;
     }
 }
 
