@@ -56,21 +56,28 @@ int progress_callback(void* clientp, double dltotal, double dlnow, double ultota
     if (dltotal > 0) {
         using Clock = std::chrono::steady_clock;
         static Clock::time_point last_print_time = Clock::now();
-        static double last_print_percentage = 0.0;
 
         auto now = Clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_print_time);
 
         double percentage = (dlnow / dltotal) * 100.0;
 
-        if (elapsed.count() >= 1000 && (percentage - last_print_percentage >= 10.0)) {
-            std::cout << "\r[FLM]  Downloading: " << std::fixed << std::setprecision(1)
-                << percentage << "% (" << dlnow / 1024 / 1024 << "MB / "
-                << dltotal / 1024 / 1024 << "MB)" << std::flush;
-            std::cout << std::endl;
+        if (elapsed.count() >= 1000) {
+            utils::enable_ansi_on_windows_once();
+
+            double percentage = (dlnow / dltotal) * 100.0;
+            double mb_now = dlnow / 1024.0 / 1024.0;
+            double mb_total = dltotal / 1024.0 / 1024.0;
+
+            std::cout << "\r\033[K"
+                << "[FLM]  Downloading: " << std::fixed << std::setprecision(1)
+                << percentage << "% (" << mb_now << "MB / " << mb_total << "MB)"
+                << std::flush;
 
             last_print_time = now;
-            last_print_percentage = percentage;
+            if (dlnow >= dltotal) {
+                std::cout << std::endl;
+            }
         }
     }
     return 0;

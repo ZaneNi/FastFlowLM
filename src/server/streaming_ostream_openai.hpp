@@ -411,8 +411,30 @@ private:
     ///@brief Send the response
     ///@param content the content
     ///@param is_final the is final
+    int is_content = 0;
+    int is_template = 0;
     void send_response(const std::string& content, bool is_final) {
         json response;
+        std::string json_content;
+        std::string json_reasoning;
+        if (content == "<|end|>" || content == "<|channel|>" || content == "<|message|>" || content == "analysis" || content == "<|start|>" || content == "assistant" || content == "final") {
+            is_template = 1;
+            if (content == "<|end|>")
+                is_content = 1;
+        }
+        else {
+            is_template = 0;
+        }
+
+        if (model_name == "gpt-oss:20b" || model_name == "gpt-oss") {
+            json_content = (is_content && !is_template) ? content : "";
+            json_reasoning = (!is_content && !is_template) ? content : "";
+        }
+        else {
+            json_content = content;
+            json_reasoning = "";
+
+        }
 
         // Content chunk
         response = {
@@ -426,7 +448,8 @@ private:
                     {"index", 0},
                     {"delta", {
                         {"role", "assistant"},
-                        {"content", content}
+                        {"content", json_content},
+                        {"reasoning_content", json_reasoning}
                     }},
                     //{"logprobs", nullptr},
                     {"finish_reason", nullptr}
@@ -435,7 +458,7 @@ private:
         };
 
         stream_callback("data: " + response.dump() + "\n\n", is_final);
-    }
+    }   
 
     ///@brief Send the chat final response
     void send_final_response(chat_meta_info_t& meta_info) {
@@ -445,17 +468,17 @@ private:
             {"created", created},
             {"model", model_name},
             {"system_fingerprint", system_fingerprint},
-            //{"choices", json::array({
-            //    {
-            //        //{"index", 0},
-            //        //{"delta", {
-            //        //     {"role", "assistant"},
-            //        //     {"content", ""}
-            //        //}},
-            //        //{"logprobs", nullptr},
-            //        {"finish_reason", "stop"}
-            //    }
-            //})},
+            {"choices", json::array({
+                {
+                    //{"index", 0},
+                    //{"delta", {
+                    //     {"role", "assistant"},
+                    //     {"content", ""}
+                    //}},
+                    //{"logprobs", nullptr},
+                    {"finish_reason", "stop"}
+                }
+            })},
             {"usage", {
                 {"prompt_tokens", meta_info.prompt_tokens},
                 {"completion_tokens", meta_info.generated_tokens},

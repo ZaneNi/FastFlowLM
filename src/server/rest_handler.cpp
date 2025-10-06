@@ -486,7 +486,7 @@ void RestHandler::handle_openai_chat_completion(const json& request,
     try {
         nlohmann::ordered_json messages_openai = request["messages"];
         std::string model = request.value("model", current_model_tag);
-        std::string reasoning_effort = request.value("reasoning_effort", "low");
+        std::string reasoning_effort = request.value("reasoning_effort", "medium");
         bool stream = request.value("stream", false);
 
         // Extract OpenAI-style parameters
@@ -608,7 +608,7 @@ void RestHandler::handle_openai_completion(const json& request,
     try {
         std::string prompt = request["prompt"];
         std::string model = request.value("model", current_model_tag);
-        std::string reasoning_effort = request.value("reasoning_effort", "low");
+        std::string reasoning_effort = request.value("reasoning_effort", "medium");
         bool stream = request.value("stream", false);
 
         // Extract OpenAI-style parameters
