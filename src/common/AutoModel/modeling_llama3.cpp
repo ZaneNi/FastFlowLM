@@ -2,13 +2,13 @@
 /// \brief llama3 class
 /// \author FastFlowLM Team
 /// \date 2025-09-04
-/// \version 0.9.12
+/// \version 0.9.13
 /// \note This is a source file for the llama3 class
 
 #include "AutoModel/modeling_llama3.hpp"
 
 /************              Llama3 family            **************/
-Llama3::Llama3(unsigned int device_id) : AutoModel(device_id, "Llama3") {}
+Llama3::Llama3(xrt::device* npu_device_inst) : AutoModel(npu_device_inst, "Llama3") {}
 
 void Llama3::load_model(std::string model_path, json model_info, int default_context_length, bool enable_preemption) {
     this->_shared_load_model(model_path, model_info, default_context_length, enable_preemption);
@@ -90,7 +90,7 @@ std::string Llama3::generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform
 }
 
 /************              DeepSeek_r1_8b family            **************/
-DeepSeek_r1_8b::DeepSeek_r1_8b(unsigned int device_id) : AutoModel(device_id) {}
+DeepSeek_r1_8b::DeepSeek_r1_8b(xrt::device* npu_device_inst) : AutoModel(npu_device_inst) {}
 
 void DeepSeek_r1_8b::load_model(std::string model_path, json model_info, int default_context_length, bool enable_preemption) {
     this->_shared_load_model(model_path, model_info, default_context_length, enable_preemption);

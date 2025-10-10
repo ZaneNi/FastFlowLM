@@ -4,7 +4,7 @@
  * \brief RestHandler class and related declarations
  * \author FastFlowLM Team
  * \date 2025-08-05
- * \version 0.9.12
+ * \version 0.9.13
  */
 #include "rest_handler.hpp"
 #include "wstream_buf.hpp"
@@ -26,6 +26,7 @@
 ///@return the rest handler
 RestHandler::RestHandler(model_list& models, ModelDownloader& downloader, const std::string& default_tag, int ctx_length, bool preemption)
     : supported_models(models), downloader(downloader), default_model_tag(default_tag), current_model_tag(""), preemption(preemption){
+    this->npu_device_inst = xrt::device(0);
 
     if (ctx_length != -1) {
         this->ctx_length = ctx_length >= 512 ? ctx_length : 512;
@@ -53,12 +54,49 @@ void RestHandler::ensure_model_loaded(const std::string& model_tag) {
         if (auto_chat_engine != nullptr) {
             auto_chat_engine.reset();
         }
-        std::pair<std::string, std::unique_ptr<AutoModel>> auto_model = get_auto_model(ensure_tag);
+        std::pair<std::string, std::unique_ptr<AutoModel>> auto_model = get_auto_model(ensure_tag, &npu_device_inst);
         auto_chat_engine = std::move(auto_model.second);
         ensure_tag = auto_model.first;
         nlohmann::json model_info = supported_models.get_model_info(ensure_tag);
         auto_chat_engine->load_model(supported_models.get_model_path(ensure_tag), model_info, ctx_length, preemption);
         current_model_tag = ensure_tag;
+    }
+}
+
+///@brief Handle the show request
+///@param request the request
+///@param send_response the send response
+///@param send_streaming_response the send streaming response
+void RestHandler::handle_show(const json& request,
+    std::function<void(const json&)> send_response,
+    StreamResponseCallback send_streaming_response) {
+    try {
+        std::string model = request["model"];
+        json info = {
+            {"modelfile", ""},
+            {"parameters", ""},
+            {"template", ""},
+            {"details", {
+                {"parent_model", ""},
+                {"format", ""},
+                {"family", ""},
+                {"families", {""}},
+                {"parameter_size", ""},
+                {"quantization_level", ""}
+                }
+            },
+            {"model_info", {
+                {"general.architecture", "flm" }
+            }},
+            {"capabilities", {"chat", "vision", "completion"}}
+        };
+
+
+        send_response(info);
+    }
+    catch (const std::exception& e) {
+        json error_response = { {"error", e.what()} };
+        send_response(error_response);
     }
 }
 
@@ -72,7 +110,7 @@ void RestHandler::handle_generate(const json& request,
                                  std::shared_ptr<CancellationToken> cancellation_token) {
     try {
         std::string prompt = request["prompt"];
-        bool stream = request.value("stream", false);
+        bool stream = request.value("stream", true);
         std::string model = request.value("model", current_model_tag);
         json options = request.value("options", json::object());
         int temperature = options.value("temperature", 0.6);
@@ -160,6 +198,7 @@ void RestHandler::handle_chat(const json& request,
         nlohmann::ordered_json messages = request["messages"];
         bool stream = request.value("stream", false);
         std::string model = request.value("model", current_model_tag);
+        std::string reasoning_effort = request.value("reasoning_effort", "medium");
         json options = request.value("options", json::object());
         float temperature = options.value("temperature", 0.6);
         float top_p = options.value("top_p", 0.9);
@@ -177,6 +216,7 @@ void RestHandler::handle_chat(const json& request,
         auto_chat_engine->set_topk(top_k);
         auto_chat_engine->set_frequency_penalty(frequency_penalty);
         auto_chat_engine->configure_parameter("enable_think", enable_thinking);
+        auto_chat_engine->configure_parameter("reasoning_effort", reasoning_effort);
 
         chat_meta_info_t meta_info;
         lm_uniform_input_t uniformed_input;
@@ -208,7 +248,8 @@ void RestHandler::handle_chat(const json& request,
             uniformed_input.messages = messages;
             auto total_start_time = time_utils::now();
             nullstream nstream;
-            std::string response_text = auto_chat_engine->generate_with_prompt(meta_info, uniformed_input, length_limit, std::cout);
+            //std::string response_text = auto_chat_engine->generate_with_prompt(meta_info, uniformed_input, length_limit, std::cout);
+            std::string response_text = auto_chat_engine->generate_with_prompt(meta_info, uniformed_input, length_limit, nstream);
             //std::string response_text = chat_engine->generate_with_prompt(meta_info, prompts, length_limit, std::cout, payload);
             auto total_end_time = time_utils::now();
             meta_info.total_duration = (uint64_t)time_utils::duration_ns(total_start_time, total_end_time).first;
@@ -668,7 +709,7 @@ void RestHandler::handle_openai_completion(const json& request,
             auto history = this->auto_chat_engine->get_history();
 
             json response = {
-                {"id", "hi"},
+                {"id", "fastflowlm-chat-completion"},
                 {"object", "text_completion"},
                 {"created", (int)std::time(nullptr)},
                 {"model", model},

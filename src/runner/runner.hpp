@@ -4,7 +4,7 @@
  * \brief Main entry point for the FLM application
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.12
+ * \version 0.9.13
  */
 #pragma once
 #include "utils/utils.hpp"
@@ -52,6 +52,7 @@ class Runner {
         bool preemption;
         // CLI instance for interactive input
         CLIWide cli;
+        xrt::device npu_device_inst;
 
         /// \brief Command functions
         void cmd_set(std::vector<std::string>& input_list);

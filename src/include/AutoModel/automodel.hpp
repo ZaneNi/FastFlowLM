@@ -2,7 +2,7 @@
 /// \brief automodel class
 /// \author FastFlowLM Team
 /// \date 2025-09-01
-/// \version 0.9.12
+/// \version 0.9.13
 /// \note This is a header file for the auto_model class
 #pragma once
 
@@ -76,6 +76,8 @@ struct lm_uniform_input_t {
 	nlohmann::ordered_json messages;
 	std::vector<std::string> images;
 	std::vector<input_payload_type_t> image_payload_types;
+	std::vector<std::string> audios;
+	std::vector<input_payload_type_t> audio_payload_types;
 };
 
 using json = nlohmann::ordered_json;
@@ -108,11 +110,11 @@ protected:
 	bool is_model_loaded = false;
 	std::string current_model = "";
 	std::vector<int> token_history;
+	xrt::device* npu_device_inst = nullptr;
 	std::unique_ptr<npu_xclbin_manager> npu = nullptr;
 	bool enable_preemption = false;
 
 	uint32_t MAX_L = 0;
-	int device_id = 0;
 	int last_token = -1;
 	uint32_t total_tokens = 0;
 	std::unique_ptr<LM_Config> lm_config = nullptr;
@@ -153,7 +155,7 @@ public:
 	//************ Shared by all models *************/
 	virtual ~AutoModel() = default;
 
-	AutoModel(unsigned int device_id = 0, std::string current_model = "");
+	AutoModel(xrt::device* npu_device_inst, std::string current_model = "");
 	/// \brief Clear the context
 	void clear_context();
 

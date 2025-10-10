@@ -2,14 +2,15 @@
 /// \brief deepseek class
 /// \author FastFlowLM Team
 /// \date 2025-09-01
-/// \version 0.9.12
+/// \version 0.9.13
 /// \note This is a source file for the deepseek class
 
 
 #include "AutoModel/modeling_qwen3.hpp"
 
+
 /************              Qwen3 family            **************/
-Qwen3::Qwen3(unsigned int device_id) : AutoModel(device_id, "Qwen3") {}
+Qwen3::Qwen3(xrt::device* npu_device_inst) : AutoModel(npu_device_inst, "Qwen3") {}
 
 void Qwen3::load_model(std::string model_path, json model_info, int default_context_length, bool enable_preemption) {
     this->_shared_load_model(model_path, model_info, default_context_length, enable_preemption);
@@ -92,7 +93,7 @@ std::string Qwen3::generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_
 }
 
 /************              Qwen3_IT family            **************/
-Qwen3_IT::Qwen3_IT(unsigned int device_id) : AutoModel(device_id) {}
+Qwen3_IT::Qwen3_IT(xrt::device* npu_device_inst) : AutoModel(npu_device_inst) {}
 
 void Qwen3_IT::load_model(std::string model_path, json model_info, int default_context_length, bool enable_preemption) {
     this->_shared_load_model(model_path, model_info, default_context_length, enable_preemption);
@@ -173,7 +174,7 @@ std::string Qwen3_IT::generate_with_prompt(chat_meta_info_t& meta_info, lm_unifo
 }
 
 /************              Qwen3_TK family            **************/
-Qwen3_TK::Qwen3_TK(unsigned int device_id) : AutoModel(device_id) {}
+Qwen3_TK::Qwen3_TK(xrt::device* npu_device_inst) : AutoModel(npu_device_inst) {}
 
 void Qwen3_TK::load_model(std::string model_path, json model_info, int default_context_length, bool enable_preemption) {
     this->_shared_load_model(model_path, model_info, default_context_length, enable_preemption);
@@ -259,7 +260,7 @@ std::string Qwen3_TK::generate_with_prompt(chat_meta_info_t& meta_info, lm_unifo
 }
 
 /************              DeepSeek_r1_0528_8b family            **************/
-DeepSeek_r1_0528_8b::DeepSeek_r1_0528_8b(unsigned int device_id) : AutoModel(device_id) {}
+DeepSeek_r1_0528_8b::DeepSeek_r1_0528_8b(xrt::device* npu_device_inst) : AutoModel(npu_device_inst) {}
 
 void DeepSeek_r1_0528_8b::load_model(std::string model_path, json model_info, int default_context_length, bool enable_preemption) {
     this->_shared_load_model(model_path, model_info, default_context_length, enable_preemption);

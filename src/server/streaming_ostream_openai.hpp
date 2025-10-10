@@ -4,7 +4,7 @@
  * \brief Custom ostream for streaming
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.12
+ * \version 0.9.13
  */
 #pragma once
 
@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <nlohmann/json.hpp>
 #include "AutoModel/automodel.hpp"
+#include "harmony_filter.hpp"
 
 using json = nlohmann::ordered_json;
 
@@ -38,6 +39,8 @@ public:
         : model_name(model), stream_callback(callback), first_chunk(true) {
         // Generate a unique ID for this stream
         generate_stream_id();
+        generate_created();
+        generate_system_fingerprint();
     }
 
 protected:
@@ -84,7 +87,24 @@ private:
         }
         stream_id = ss.str();
     }
-    
+    void generate_created() {
+        created = std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+        ).count();
+    }
+    void generate_system_fingerprint() {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, 15);
+
+        std::stringstream ss;
+        ss << "fp_";
+        for (int i = 0; i < 16; ++i) {
+            ss << std::hex << dis(gen);
+        }
+        system_fingerprint = ss.str();
+    }
+
     ///@brief Get UTF-8 sequence length from first byte
     ///@param first_byte the first byte
     ///@return sequence length, or 0 if invalid
@@ -148,35 +168,19 @@ private:
     void send_response(const std::string& content, bool is_final) {
         json response;
         
-        if (first_chunk) {
-            // First chunk with role
-            response = {
-                {"id", stream_id},
-                {"object", "chat.completion.chunk"},
-                {"choices", json::array({
-                    {
-                        {"delta", {
-                            {"role", "assistant"},
-                            {"content", ""}
-                        }},
-                        {"index", 0}
-                    }
-                })}
-            };
-            first_chunk = false;
-            stream_callback("data: " + response.dump() + "\n\n", false);
-        }
-        
         // Content chunk
         response = {
             {"id", stream_id},
-            {"object", "chat.completion.chunk"},
+            {"object", "text_completion"},
+            {"created", created},
+            {"system_fingerprint", system_fingerprint},
+            {"model", model_name},
             {"choices", json::array({
                 {
-                    {"delta", {
-                        {"content", content}
-                    }},
-                    {"index", 0}
+                    {"text", content},
+                    {"index", 0},
+                    {"logprobs", nullptr},
+                    {"finish_reason", nullptr}
                 }
             })}
         };
@@ -187,32 +191,16 @@ private:
 
     ///@brief Send the chat final response
     void send_final_response(chat_meta_info_t& meta_info) {
-        if (first_chunk) {
-            // If no content was sent, send role first
-            json response = {
-                {"id", stream_id},
-                {"object", "chat.completion.chunk"},
-                {"choices", json::array({
-                    {
-                        {"delta", {
-                            {"role", "assistant"}
-                        }},
-                        {"index", 0}
-                    }
-                })}
-            };
-            stream_callback("data: " + response.dump() + "\n\n", false);
-        }
-        
         // Send final chunk with finish_reason only (no empty delta)
         json final_response = {
             {"id", stream_id},
-            {"object", "chat.completion.chunk"},
+            {"object", "text_completion"},
+            {"created", created},
+            {"system_fingerprint", system_fingerprint},
+            {"model", model_name},
             {"choices", json::array({
                 {
-                    {"delta", json::object()},
-                    {"finish_reason", "stop"},
-                    {"index", 0}
+                    {"finish_reason", stop_reason_to_string(meta_info.stop_reason)},
                 }
             })},
             {"usage", {
@@ -235,6 +223,8 @@ private:
     StreamCallback stream_callback;
     ///@brief Stream ID
     std::string stream_id;
+    long created;
+    std::string system_fingerprint;
     ///@brief First chunk flag
     bool first_chunk;
 };
@@ -279,6 +269,7 @@ public:
         generate_stream_id();
         generate_created();
         generate_system_fingerprint();
+        harmony_filter_inst = std::make_unique<harmony_filter>();
     }
 
 protected:
@@ -415,20 +406,15 @@ private:
     int is_template = 0;
     void send_response(const std::string& content, bool is_final) {
         json response;
-        std::string json_content;
-        std::string json_reasoning;
-        if (content == "<|end|>" || content == "<|channel|>" || content == "<|message|>" || content == "analysis" || content == "<|start|>" || content == "assistant" || content == "final") {
-            is_template = 1;
-            if (content == "<|end|>")
-                is_content = 1;
-        }
-        else {
-            is_template = 0;
-        }
+
+        std::string json_content = "";
+        std::string json_reasoning = "";
+
+        harmony_part_t part = harmony_filter_inst->identify_part(content);
 
         if (model_name == "gpt-oss:20b" || model_name == "gpt-oss") {
-            json_content = (is_content && !is_template) ? content : "";
-            json_reasoning = (!is_content && !is_template) ? content : "";
+            json_content = (part == harmony_part_t::response) ? content : "";
+            json_reasoning = (part == harmony_part_t::reasoning) ? content : "";
         }
         else {
             json_content = content;
@@ -464,19 +450,19 @@ private:
     void send_final_response(chat_meta_info_t& meta_info) {
         json final_response = {
             {"id", stream_id},
-            {"object", "chat.completion.chunk"},
+            {"object", "chat.chunk"},
             {"created", created},
             {"model", model_name},
             {"system_fingerprint", system_fingerprint},
             {"choices", json::array({
                 {
-                    //{"index", 0},
-                    //{"delta", {
-                    //     {"role", "assistant"},
-                    //     {"content", ""}
-                    //}},
+                    {"index", 0},
+                    {"message", {
+                         {"role", "assistant"},
+                         {"content", nullptr }
+                    }},
                     //{"logprobs", nullptr},
-                    {"finish_reason", "stop"}
+                    {"finish_reason", stop_reason_to_string(meta_info.stop_reason)}
                 }
             })},
             {"usage", {
@@ -511,6 +497,8 @@ private:
     std::string system_fingerprint;
     ///@brief First chunk flag
     bool first_chunk;
+
+    std::unique_ptr<harmony_filter> harmony_filter_inst;
 };
 
 ///@brief Custom ostream for streaming

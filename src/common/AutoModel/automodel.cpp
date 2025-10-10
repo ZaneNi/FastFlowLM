@@ -2,7 +2,7 @@
 /// \brief automodel class
 /// \author FastFlowLM Team
 /// \date 2025-09-01
-/// \version 0.9.12
+/// \version 0.9.13
 /// \note This is a source file for the auto_model class
 
 #include "AutoModel/automodel.hpp"
@@ -20,8 +20,8 @@ std::unordered_set<std::string> modelTags = {
         "gpt-oss", "gpt-oss:20b"
 };
 
-AutoModel::AutoModel(unsigned int device_id, std::string current_model) {
-    this->device_id = device_id;
+AutoModel::AutoModel(xrt::device* npu_device_inst, std::string current_model) {
+    this->npu_device_inst = npu_device_inst;
     this->current_model = current_model;
     this->total_tokens = 0;
     this->profiler_list.resize(PROFILER_TYPE_NUM);
@@ -99,7 +99,11 @@ void AutoModel::_shared_load_model(std::string model_path, json model_info, int 
     header_print("FLM", "Loading model: " << this->model_path);
     this->lm_config = std::make_unique<LM_Config>();
     this->lm_config->from_pretrained(this->model_path);
-    this->npu = std::make_unique<npu_xclbin_manager>(npu_device::device_npu2, device_id, enable_preemption);
+    if (this->npu_device_inst == nullptr) {
+        header_print("ERROR", "NPU device instance is nullptr");
+        exit(1);
+    }
+    this->npu = std::make_unique<npu_xclbin_manager>(npu_device::device_npu2, this->npu_device_inst, enable_preemption);
     this->enable_preemption = enable_preemption;
     // Set context length: use provided value if not -1, otherwise use model default
     if (default_context_length != -1) {

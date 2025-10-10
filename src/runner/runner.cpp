@@ -4,9 +4,10 @@
 *  \brief Runner implementation for interactive model execution
 *  \author FastFlowLM Team
 *  \date 2025-08-05
-*  \version 0.9.12
+*  \version 0.9.13
 */
 #include "runner.hpp"
+#include "harmony_filter.hpp"
 #include <iostream>
 #include <sstream>
 #include <filesystem>
@@ -39,11 +40,12 @@ Runner::Runner(model_list& supported_models, ModelDownloader& downloader, std::s
     } else {
         this->ctx_length = -1;
     }
+    this->npu_device_inst = xrt::device(0);
     this->preemption = preemption;
     if (this->auto_chat_engine != nullptr) {
         this->auto_chat_engine.reset();
     }
-    std::pair<std::string, std::unique_ptr<AutoModel>> auto_model = get_auto_model(this->tag);
+    std::pair<std::string, std::unique_ptr<AutoModel>> auto_model = get_auto_model(this->tag, &this->npu_device_inst);
     this->auto_chat_engine = std::move(auto_model.second);
     this->tag = auto_model.first;
     if (!this->downloader.is_model_downloaded(this->tag)) {
@@ -65,7 +67,7 @@ void Runner::run() {
     this->auto_chat_engine->configure_parameter("system_prompt", this->system_prompt);
     std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8conv;
     wstream_buf obuf(std::cout);
-    std::ostream ostream(&obuf);
+    std::ostream base_ostream(&obuf);
     header_print("FLM", "Type /? for help");
     int empty_line_count = 0;
     bool is_image = false;
@@ -233,7 +235,15 @@ void Runner::run() {
                 break;
             }
             this->auto_chat_engine->stop_ttft_timer();
-            this->auto_chat_engine->generate(meta_info, this->generate_limit, ostream);
+            
+            // Use harmony filter for gpt-oss models
+            if (this->auto_chat_engine->get_current_model().find("gpt-oss") != std::string::npos) { // contains gpt-oss:20b and gpt-oss
+                cli_harmony_filter harmony_filter_ostream(std::cout);
+                this->auto_chat_engine->generate(meta_info, this->generate_limit, harmony_filter_ostream);
+            } else {
+                this->auto_chat_engine->generate(meta_info, this->generate_limit, base_ostream);
+            }
+            
             this->auto_chat_engine->stop_total_timer();
             std::cout << std::endl;
             if (verbose) {
@@ -264,7 +274,7 @@ void Runner::cmd_load(std::vector<std::string>& input_list) {
         header_print("ERROR", "Model not found: " << model_name << "; Please check with `/list`");
         return;
     }
-    std::pair<std::string, std::unique_ptr<AutoModel>> auto_model = get_auto_model(model_name);
+    std::pair<std::string, std::unique_ptr<AutoModel>> auto_model = get_auto_model(model_name, &this->npu_device_inst);
     model_name = auto_model.first;
 
     if (model_name != this->tag) {

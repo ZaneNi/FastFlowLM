@@ -4,7 +4,7 @@
  * \brief Custom ostream for streaming
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.12
+ * \version 0.9.13
  */
 #pragma once
 
@@ -15,6 +15,7 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 #include "AutoModel/automodel.hpp"
+#include "harmony_filter.hpp"
 
 using json = nlohmann::ordered_json;
 
@@ -30,7 +31,9 @@ public:
     using StreamCallback = std::function<void(const json&, bool)>;
     
     streaming_buf(const std::string& model, StreamCallback callback, bool is_chat_format = false)
-        : model_name(model), stream_callback(callback), is_chat(is_chat_format) {}
+        : model_name(model), stream_callback(callback), is_chat(is_chat_format) {
+            harmony_filter_inst = std::make_unique<harmony_filter>();
+    }
 
 protected:
     ///@brief Called when buffer is full or flush is requested
@@ -134,22 +137,41 @@ private:
     ///@brief Send the response
     ///@param content the content
     ///@param is_final the is final
+    int is_content = 0;
+    int is_template = 0;
     void send_response(const std::string& content, bool is_final) {
         json response;
         
+        std::string json_content = "";
+        std::string json_reasoning = "";
+
+        harmony_part_t part = harmony_filter_inst->identify_part(content);
+
+        if (model_name == "gpt-oss:20b" || model_name == "gpt-oss") {
+            json_content = (part == harmony_part_t::response) ? content : "";
+            json_reasoning = (part == harmony_part_t::reasoning) ? content : "";
+        }
+        else {
+            json_content = content;
+            json_reasoning = "";
+
+        }
+
         if (is_chat) {
             response = {
                 {"model", model_name},
                 {"message", {
                     {"role", "assistant"},
-                    {"content", content}
+                    {"content", json_content},
+                    {"thinking", json_reasoning}
                 }},
                 {"done", is_final}
             };
         } else {
             response = {
                 {"model", model_name},
-                {"response", content},
+                {"response", json_content},
+                {"thinking", json_reasoning},
                 {"done", is_final}
             };
         }
@@ -209,6 +231,7 @@ private:
     StreamCallback stream_callback;
     ///@brief Is chat
     bool is_chat;
+    std::unique_ptr<harmony_filter> harmony_filter_inst;
 };
 
 ///@brief Custom ostream for streaming

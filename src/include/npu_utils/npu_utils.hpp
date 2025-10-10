@@ -452,7 +452,7 @@ private:
 
     size_t xclbin_count;
     // the only device instance
-    std::unique_ptr<xrt::device> device;
+    xrt::device* device;
     bool enable_preemption;
     npu_device npu_gen;
 public:
@@ -462,8 +462,8 @@ public:
     ///@param device the npu device
     ///@param device_id the device id
     ///@see xrt::device
-    npu_xclbin_manager(npu_device device = device_npu2, unsigned int device_id = 0U, bool enable_preemption = false){
-        this->device = std::make_unique<xrt::device>(device_id);
+    npu_xclbin_manager(npu_device device = device_npu2, xrt::device* device_inst = nullptr, bool enable_preemption = false){
+        this->device = device_inst;
         // this->npu_xclbins.resize(max_xclbins);
         this->npu_xclbins.reserve(max_xclbins);
         this->xclbin_count = 0;
@@ -499,7 +499,7 @@ public:
             if (this->xclbin_count >= max_xclbins){
                 throw std::runtime_error("Max number of xclbins reached");
             }
-            this->npu_xclbins.push_back(std::make_unique<npu_app_manager>(this->npu_gen, this->device.get(), xclbin_name, this->enable_preemption));
+            this->npu_xclbins.push_back(std::make_unique<npu_app_manager>(this->npu_gen, this->device, xclbin_name, this->enable_preemption));
             xclbin_id = this->xclbin_count;
             LOG_VERBOSE(2, "Xclbin: " << xclbin_name << " registered as id " << xclbin_id << "!");
             this->xclbin_count++;

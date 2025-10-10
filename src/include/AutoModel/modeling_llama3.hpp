@@ -2,7 +2,7 @@
 /// \brief llama3 class
 /// \author FastFlowLM Team
 /// \date 2025-09-04
-/// \version 0.9.12
+/// \version 0.9.13
 /// \note This is a source file for the llama3 class
 
 #pragma once
@@ -14,7 +14,7 @@ private:
     void setup_tokenizer(std::string model_path);
 
 public:
-    Llama3(unsigned int device_id);
+    Llama3(xrt::device* npu_device_inst);
 
     void load_model(std::string model_path, json model_inf, int default_context_length = -1, bool enable_preemption = false) override;
     //void toggle_enable_think() override;
@@ -28,13 +28,11 @@ public:
 class DeepSeek_r1_8b : public AutoModel {
 private:
     std::string current_model = "DeepSeek_r1_8b";
-
     int think_marker_id;
-
     void setup_tokenizer(std::string model_path);
 
 public:
-    DeepSeek_r1_8b(unsigned int device_id);
+    DeepSeek_r1_8b(xrt::device* npu_device_inst);
 
     void load_model(std::string model_path, json model_inf, int default_context_length = -1, bool enable_preemption = false) override;
     //void toggle_enable_think() override;

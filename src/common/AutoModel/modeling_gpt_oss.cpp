@@ -2,11 +2,11 @@
 /// \brief modeling_gpt_oss class
 /// \author FastFlowLM Team
 /// \date 2025-10-01
-/// \version 0.9.12
+/// \version 0.9.13
 /// \note This is a source file for the gpt-oss class
-#include "AutoModel/modeling_gpt_oss.hpp"
+#include "AutoModel/modeling_gpt_oss.hpp"   
 
-GPT_OSS::GPT_OSS(unsigned int device_id) : AutoModel(device_id, "gpt-oss") {}
+GPT_OSS::GPT_OSS(xrt::device* npu_device_inst) : AutoModel(npu_device_inst, "gpt-oss") {}
 
 void GPT_OSS::load_model(std::string model_path, json model_info, int default_context_length, bool enable_preemption) {
     this->model_path = model_path;
@@ -78,12 +78,20 @@ bool GPT_OSS::insert(chat_meta_info_t& meta_info, lm_uniform_input_t& input)
 
 
 std::string GPT_OSS::generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os) {
-    return this->_shared_generate(meta_info, length_limit, os);
+    os << "<|start|>" << std::flush;
+    os << "assistant" << std::flush;
+    std::string result = this->_shared_generate(meta_info, length_limit, os);
+    os << "<|end|>" << std::flush;
+    return "<|start|>assistant" + result + "<|end|>";
 }
 
 std::string GPT_OSS::generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os) {
     if (!this->insert(meta_info, input)) {
         return "";
     }
-    return this->_shared_generate(meta_info, length_limit, os);
+    os << "<|start|>" << std::flush;
+    os << "assistant" << std::flush;
+    std::string result = this->_shared_generate(meta_info, length_limit, os);
+    os << "<|end|>" << std::flush;
+    return "<|start|>assistant" + result + "<|end|>";
 }

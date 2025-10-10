@@ -2,7 +2,7 @@
 /// \brief gemma3 class
 /// \author FastFlowLM Team
 /// \date 2025-09-03
-/// \version 0.9.12
+/// \version 0.9.13
 /// \note This is a source file for the gemma3 class
 
 #pragma once
@@ -26,12 +26,10 @@ extern "C" {
 class Gemma3_Text_Only : public AutoModel {
 private:
 
-    int think_marker_id;
-
     void setup_tokenizer(std::string model_path);
 
 public:
-    Gemma3_Text_Only(unsigned int device_id);
+    Gemma3_Text_Only(xrt::device* npu_device_inst);
 
     void load_model(std::string model_path, json model_inf, int default_context_length = -1, bool enable_preemption = false) override;
     //void toggle_enable_think() override;

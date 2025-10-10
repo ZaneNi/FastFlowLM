@@ -2,7 +2,7 @@
 /// \brief all_models class
 /// \author FastFlowLM Team
 /// \date 2025-09-10
-/// \version 0.9.12
+/// \version 0.9.13
 /// \note This is a header file for the all_models class
 #pragma once
 
@@ -39,7 +39,7 @@ inline std::string complete_simple_tag(std::string model_tag) {
 }
 
 
-inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const std::string& model_tag) {
+inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const std::string& model_tag, xrt::device* npu_device_inst) {
     
     static std::unordered_set<std::string> llamaTags = {
         "llama3.1", "llama3.1:8b", 
@@ -75,26 +75,26 @@ inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const s
     std::unique_ptr<AutoModel> auto_chat_engine = nullptr;
     std::string new_model_tag = complete_simple_tag(model_tag);
     if (llamaTags.count(model_tag)) // tag
-        auto_chat_engine = std::make_unique<Llama3>(0);
+        auto_chat_engine = std::make_unique<Llama3>(npu_device_inst);
     else if (deepseek_r1_0528_Tags.count(model_tag)) 
-        auto_chat_engine = std::make_unique<DeepSeek_r1_0528_8b>(0);
+        auto_chat_engine = std::make_unique<DeepSeek_r1_0528_8b>(npu_device_inst);
     else if (deepseek_r1_Tags.count(model_tag))
-        auto_chat_engine = std::make_unique<DeepSeek_r1_8b>(0);
+        auto_chat_engine = std::make_unique<DeepSeek_r1_8b>(npu_device_inst);
     else if (qwen3_it_Tags.count(model_tag))
-        auto_chat_engine = std::make_unique<Qwen3_IT>(0);
+        auto_chat_engine = std::make_unique<Qwen3_IT>(npu_device_inst);
     else if (qwen3_tk_Tags.count(model_tag))
-        auto_chat_engine = std::make_unique<Qwen3_TK>(0);
+        auto_chat_engine = std::make_unique<Qwen3_TK>(npu_device_inst);
     else if (qwen3_Tags.count(model_tag))
-        auto_chat_engine = std::make_unique<Qwen3>(0);
+        auto_chat_engine = std::make_unique<Qwen3>(npu_device_inst);
     else if (gemma3_text_Tags.count(model_tag))
-        auto_chat_engine = std::make_unique<Gemma3_Text_Only>(0);
+        auto_chat_engine = std::make_unique<Gemma3_Text_Only>(npu_device_inst);
     else if (gemma3_vlm_tags.count(model_tag))
-        auto_chat_engine = std::make_unique<Gemma3>(0);
+        auto_chat_engine = std::make_unique<Gemma3>(npu_device_inst);
     else if (gpt_oss_tags.count(model_tag))
-        auto_chat_engine = std::make_unique<GPT_OSS>(0);
+        auto_chat_engine = std::make_unique<GPT_OSS>(npu_device_inst);
     else {
         new_model_tag = "llama3.2:1b"; // No arguments, use default tag
-        auto_chat_engine = std::make_unique<Llama3>(0);
+        auto_chat_engine = std::make_unique<Llama3>(npu_device_inst);
     }
   
     return std::make_pair(new_model_tag, std::move(auto_chat_engine));

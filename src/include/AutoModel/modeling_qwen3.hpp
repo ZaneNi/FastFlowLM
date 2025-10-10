@@ -2,7 +2,7 @@
 /// \brief qwen3 class
 /// \author FastFlowLM Team
 /// \date 2025-09-04
-/// \version 0.9.12
+/// \version 0.9.13
 /// \note This is a source file for the qwen3 class
 
 #pragma once
@@ -18,7 +18,7 @@ private:
     void setup_tokenizer(std::string model_path);
 
 public:
-    Qwen3(unsigned int device_id);
+    Qwen3(xrt::device* npu_device_inst);
 
     void load_model(std::string model_path, json model_inf, int default_context_length = -1, bool enable_preemption = false) override;
     //void toggle_enable_think() override;
@@ -62,7 +62,7 @@ private:
     void setup_tokenizer(std::string model_path);
 
 public:
-    Qwen3_IT(unsigned int device_id);
+    Qwen3_IT(xrt::device* npu_device_inst);
 
     void load_model(std::string model_path, json model_inf, int default_context_length = -1, bool enable_preemption = false) override;
     //void toggle_enable_think() override;
@@ -81,7 +81,7 @@ private:
     void setup_tokenizer(std::string model_path);
 
 public:
-    Qwen3_TK(unsigned int device_id);
+    Qwen3_TK(xrt::device* npu_device_inst);
 
     void load_model(std::string model_path, json model_inf, int default_context_length = -1, bool enable_preemption = false) override;
     //void toggle_enable_think() override;
@@ -102,7 +102,7 @@ private:
     void setup_tokenizer(std::string model_path);
 
 public:
-    DeepSeek_r1_0528_8b(unsigned int device_id);
+    DeepSeek_r1_0528_8b(xrt::device* npu_device_inst);
 
     void load_model(std::string model_path, json model_inf, int default_context_length = -1, bool enable_preemption = false) override;
     //void toggle_enable_think() override;

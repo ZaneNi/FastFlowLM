@@ -4,7 +4,7 @@
  * \brief RestHandler class and related declarations
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.12
+ * \version 0.9.13
  */
 #pragma once
 
@@ -28,6 +28,10 @@ class RestHandler {
 public:
     RestHandler(model_list& models, ModelDownloader& downloader, const std::string& default_tag, int ctx_length = -1, bool preemption = false);
     ~RestHandler();
+
+    void handle_show(const json& request,
+        std::function<void(const json&)> send_response,
+        StreamResponseCallback send_streaming_response);
 
     void handle_generate(const json& request, 
                         std::function<void(const json&)> send_response,
@@ -96,6 +100,7 @@ private:
     void ensure_model_loaded(const std::string& model_tag);
 
     std::unique_ptr<AutoModel> auto_chat_engine;
+    xrt::device npu_device_inst;
     model_list& supported_models;
     ModelDownloader& downloader;
     std::string current_model_tag;

@@ -4,7 +4,7 @@
  * \brief WebServer class and related declarations
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.12
+ * \version 0.9.13
  */
 #include "server.hpp"
 #include "rest_handler.hpp"
@@ -116,6 +116,13 @@ void brief_print_message_request(nlohmann::json request) {
     std::cout << request.dump(4) << std::endl;
 
 }
+
+///@brief brief print request
+///@param request the request
+void brief_print_message_response(nlohmann::json request) {
+
+}
+
 // NPU Access Manager implementation
 bool NPUAccessManager::try_acquire_npu_access() {
     std::lock_guard<std::mutex> lock(g_npu_access_mutex);
@@ -289,23 +296,23 @@ void HttpSession::handle_request(bool cors) {
 void HttpSession::write_response() {
     auto self = shared_from_this();
 
-    header_print("⬆️ ", "Outgoing Response: ");
-    header_print("LOG", "Time stamp: " << get_current_time_string()); // hh:mm:ss mm:dd:yyyy
+    // header_print("⬆️ ", "Outgoing Response: ");
+    // header_print("LOG", "Time stamp: " << get_current_time_string()); // hh:mm:ss mm:dd:yyyy
     
     // Check if this is one of the endpoints where we should skip printing the response body
     std::string target = std::string(req_.target());
-    bool skip_body_print = (target == "/api/ps" || target == "/api/tags" || target == "/api/version" || target == "/v1/models");
+    bool skip_body_print = (target == "/api/ps" || target == "/api/tags" || target == "/api/version" || target == "/v1/models" || target == "/api/show");
     
-    if (!skip_body_print) {
-        try{
-            nlohmann::json response_json = json::parse(res_.body());
-            brief_print_message_request(response_json);
-            // std::cout << "response_json: " << response_json.dump(4) << std::endl;
-        } catch (const std::exception& e) {
-            header_print("LOG", "Body: ");
-            std::cout << res_.body() << std::endl;
-        }
-    }
+    //if (!skip_body_print) {
+    //    try{
+    //        nlohmann::json response_json = json::parse(res_.body());
+    //        brief_print_message_request(response_json);
+    //        // std::cout << "response_json: " << response_json.dump(4) << std::endl;
+    //    } catch (const std::exception& e) {
+    //        header_print("LOG", "Body: ");
+    //        std::cout << res_.body() << std::endl;
+    //    }
+    //}
 
     std::cout << "================================================" << std::endl;
 
@@ -726,6 +733,19 @@ std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader&
     auto rest_handler = std::make_shared<RestHandler>(models, downloader, default_tag, ctx_length);
     
     // Register Ollama-compatible routes
+    server->register_handler("POST", "/api/show",
+        [rest_handler](const http::request<http::string_body>& req,
+            std::function<void(const json&)> send_response,
+            std::function<void(const json&, bool)> send_streaming_response,
+            std::shared_ptr<HttpSession> session,
+            std::shared_ptr<CancellationToken> cancellation_token) {
+                json request_json;
+                if (!req.body().empty()) {
+                    request_json = json::parse(req.body());
+                }
+                rest_handler->handle_show(request_json, send_response, send_streaming_response);
+        });
+
     server->register_handler("POST", "/api/generate", 
         [rest_handler](const http::request<http::string_body>& req, 
                       std::function<void(const json&)> send_response,

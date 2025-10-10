@@ -2,7 +2,7 @@
 /// \brief modeling_gpt_oss class
 /// \author FastFlowLM Team
 /// \date 2025-10-01
-/// \version 0.9.12
+/// \version 0.9.13
 /// \note This is a source file for the gpt-oss class
 #pragma once
 
@@ -13,13 +13,13 @@ private:
 
     bool enable_think = true;
 
-    std::string reasoning_effort = "medium";
+    std::string reasoning_effort = "low";
     std::string model_identity = "You are ChatGPT, a large language model trained by OpenAI.";
     std::string role = "developer";
 
     void setup_tokenizer(std::string model_path);
 public:
-    GPT_OSS(unsigned int device_id);
+    GPT_OSS(xrt::device* npu_device_inst);
 
     void load_model(std::string model_path, json model_info, int default_context_length = -1, bool enable_preemption = false) override;
     std::string apply_chat_template(nlohmann::ordered_json& messages) override;

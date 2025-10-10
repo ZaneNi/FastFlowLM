@@ -435,7 +435,7 @@
                 "url": "https://huggingface.co/FastFlowLM/GPT-OSS-20B-NPU2",
                 "modified_at": "2025-05-30T00:00:00Z",
                 "size": 20000000000,
-                "flm_min_version": "0.9.12",
+                "flm_min_version": "0.9.13",
                 "files":[
                     "attn.xclbin",
                     "config.json",
