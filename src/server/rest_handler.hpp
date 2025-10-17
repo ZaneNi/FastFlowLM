@@ -1,14 +1,15 @@
-/*!
+﻿/*!
  *  Copyright (c) 2023 by Contributors
  * \file rest_handler.hpp
  * \brief RestHandler class and related declarations
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.13
+ * \version 0.9.14
  */
 #pragma once
 
 #include "AutoModel/all_models.hpp"
+#include "whisper/modeling_whisper.hpp"
 #include "model_list.hpp"
 #include "model_downloader.hpp"
 #include <nlohmann/json.hpp>
@@ -26,7 +27,7 @@ using StreamResponseCallback = std::function<void(const json&, bool)>; // data, 
 
 class RestHandler {
 public:
-    RestHandler(model_list& models, ModelDownloader& downloader, const std::string& default_tag, int ctx_length = -1, bool preemption = false);
+    RestHandler(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, int ctx_length = -1, bool preemption = false);
     ~RestHandler();
 
     void handle_show(const json& request,
@@ -90,7 +91,10 @@ public:
                                       std::function<void(const json&)> send_response,
                                       StreamResponseCallback send_streaming_response,
                                       std::shared_ptr<CancellationToken> cancellation_token = nullptr);
-
+    void handle_openai_audio_transcriptions(const json& request,
+                                      std::function<void(const json&)> send_response,
+                                      StreamResponseCallback send_streaming_response,
+                                      std::shared_ptr<CancellationToken> cancellation_token = nullptr);
     void handle_openai_completion(const json& request,
         std::function<void(const json&)> send_response,
         StreamResponseCallback send_streaming_response,
@@ -98,13 +102,16 @@ public:
 
 private:
     void ensure_model_loaded(const std::string& model_tag);
+    void ensure_asr_model_loaded(const std::string& model_tag);
 
     std::unique_ptr<AutoModel> auto_chat_engine;
+    std::unique_ptr<Whisper> whisper_engine;
     xrt::device npu_device_inst;
     model_list& supported_models;
     ModelDownloader& downloader;
     std::string current_model_tag;
     std::string default_model_tag;
+    bool asr;
     int generate_context_id;
     int chat_context_id;
     int ctx_length;

@@ -2,7 +2,7 @@
 /// \brief model_list class
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.13
+/// \version 0.9.14
 /// \note This class is used to manage the model list.
 #pragma once
 #include "nlohmann/json.hpp"
@@ -12,7 +12,7 @@
 #include <vector>
 #include "utils/utils.hpp"
 
-#define __FLM_VERSION__ "0.9.13"
+#define __FLM_VERSION__ "0.9.14"
 
 /// \note This class is used to manage the model list.
 class model_list {
@@ -156,6 +156,33 @@ class model_list {
 
         /// \brief get all the models
         /// \return all the models in json
+        nlohmann::json get_all_models_ollama() {
+            nlohmann::json response = {
+                {"models", nlohmann::json::array()}
+            };
+
+            for (const auto& [model_type, model_subset] : this->config["models"].items()) {
+                if (model_type == "whisper-v3") continue;
+                for (const auto& [size, model_info] : model_subset.items()) {
+                    nlohmann::json model_entry = {
+                        {"name", model_type + ":" + size},
+                        {"model", model_type + ":" + size},
+                        {"modified_at", "2024-03-28T00:00:00Z"},
+                        {"details", {
+                            {"format", "gguf"},
+                            {"family", model_type},
+                            {"parameter_size", size},
+                            {"quantization_level", "Q4_0"}
+                        }}
+                    };
+                    response["models"].push_back(model_entry);
+                }
+            }
+            return response;
+        }
+
+        /// \brief get all the models
+        /// \return all the models in json
         nlohmann::json get_all_models_openai() {
             nlohmann::json response = {
                 {"object", "list"},
@@ -166,6 +193,7 @@ class model_list {
             std::time_t now = std::time(nullptr);
 
             for (const auto& [model_type, model_subset] : this->config["models"].items()) {
+                if (model_type == "whisper-v3") continue;
                 for (const auto& [size, model_info] : model_subset.items()) {
                     // id uses the same "type:size" convention; created uses current epoch seconds
                     nlohmann::json model_entry = {

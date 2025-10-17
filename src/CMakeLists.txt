@@ -31,7 +31,7 @@ set(XRT_LIB_DIR     C:/dev/xrtNPUfromDLL     CACHE PATH   "Where XRT libs live")
 # ———————————————————————————————————————————————
 # Gather your sources
 # ———————————————————————————————————————————————
-file(GLOB SOURCES "src/*.cpp" "runner/*.cpp" "common/*.cpp" "common/*/*.cpp" "server/*.cpp" "pull/*.cpp")
+file(GLOB SOURCES "src/*.cpp" "runner/*.cpp" "common/*.cpp" "common/*/*.cpp" "server/*.cpp" "pull/*.cpp" )
 file(GLOB HEADERS "include/*.hpp" "runner/*.hpp" "common/*.hpp" "common/*/*.hpp" "server/*.hpp" "pull/*.hpp")
 
 
@@ -84,6 +84,8 @@ target_link_libraries(flm PUBLIC
     qwen_npu
     gemma_npu
     gemma_text_npu
+    gpt_oss_npu
+    whisper_npu
     dequant
     gemm
     lm_head
@@ -93,7 +95,11 @@ target_link_libraries(flm PUBLIC
     avcodec
     avutil
     swscale
+    swresample
     libboost_program_options-vc143-mt-x64-1_88
+    libfftw3-3
+    libfftw3f-3
+    libfftw3l-3
 )
 
 target_link_libraries(flm PRIVATE

@@ -4,7 +4,7 @@
  * \brief Custom ostream for streaming
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.13
+ * \version 0.9.14
  */
 #pragma once
 
@@ -450,17 +450,14 @@ private:
     void send_final_response(chat_meta_info_t& meta_info) {
         json final_response = {
             {"id", stream_id},
-            {"object", "chat.chunk"},
+            {"object", "chat.completion.chunk"},
             {"created", created},
             {"model", model_name},
             {"system_fingerprint", system_fingerprint},
             {"choices", json::array({
                 {
                     {"index", 0},
-                    {"message", {
-                         {"role", "assistant"},
-                         {"content", nullptr }
-                    }},
+                    {"delta", {}},
                     //{"logprobs", nullptr},
                     {"finish_reason", stop_reason_to_string(meta_info.stop_reason)}
                 }

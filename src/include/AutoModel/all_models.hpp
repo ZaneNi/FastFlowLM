@@ -2,7 +2,7 @@
 /// \brief all_models class
 /// \author FastFlowLM Team
 /// \date 2025-09-10
-/// \version 0.9.13
+/// \version 0.9.14
 /// \note This is a header file for the all_models class
 #pragma once
 
@@ -41,27 +41,27 @@ inline std::string complete_simple_tag(std::string model_tag) {
 
 inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const std::string& model_tag, xrt::device* npu_device_inst) {
     
-    static std::unordered_set<std::string> llamaTags = {
+    static std::unordered_set<std::string> llamatags = {
         "llama3.1", "llama3.1:8b", 
         "llama3.2","llama3.2:1b", "llama3.2:3b"
     };
 
-    static std::unordered_set<std::string> deepseek_r1_Tags = {
+    static std::unordered_set<std::string> deepseek_r1_tags = {
         "deepseek-r1", "deepseek-r1:8b"
     };
-    static std::unordered_set<std::string> deepseek_r1_0528_Tags = {
+    static std::unordered_set<std::string> deepseek_r1_0528_tags = {
         "deepseek-r1-0528", "deepseek-r1-0528:8b"
     };
-    static std::unordered_set<std::string> qwen3_Tags = {
+    static std::unordered_set<std::string> qwen3_tags = {
         "qwen3", "qwen3:0.6b", "qwen3:1.7b", "qwen3:4b", "qwen3:8b"
     };
-    static std::unordered_set<std::string> qwen3_it_Tags = {
+    static std::unordered_set<std::string> qwen3_it_tags = {
         "qwen3-it", "qwen3-it:4b"
     };
-    static std::unordered_set<std::string> qwen3_tk_Tags = {
+    static std::unordered_set<std::string> qwen3_tk_tags = {
         "qwen3-tk", "qwen3-tk:4b"
     };
-    static std::unordered_set<std::string> gemma3_text_Tags = {
+    static std::unordered_set<std::string> gemma3_text_tags = {
         "gemma3", "gemma3:270m", "gemma3:1b"
     };
     static std::unordered_set<std::string> gemma3_vlm_tags = {
@@ -71,27 +71,35 @@ inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const s
     static std::unordered_set<std::string> gpt_oss_tags = {
         "gpt-oss:20b", "gpt-oss"
     };
+    static std::unordered_set<std::string> whisper_tags = {
+        " whisper-v3:turbo", "whisper-v3", "whisper"
+    };
 
     std::unique_ptr<AutoModel> auto_chat_engine = nullptr;
     std::string new_model_tag = complete_simple_tag(model_tag);
-    if (llamaTags.count(model_tag)) // tag
+    if (llamatags.count(model_tag)) // tag
         auto_chat_engine = std::make_unique<Llama3>(npu_device_inst);
-    else if (deepseek_r1_0528_Tags.count(model_tag)) 
+    else if (deepseek_r1_0528_tags.count(model_tag))
         auto_chat_engine = std::make_unique<DeepSeek_r1_0528_8b>(npu_device_inst);
-    else if (deepseek_r1_Tags.count(model_tag))
+    else if (deepseek_r1_tags.count(model_tag))
         auto_chat_engine = std::make_unique<DeepSeek_r1_8b>(npu_device_inst);
-    else if (qwen3_it_Tags.count(model_tag))
+    else if (qwen3_it_tags.count(model_tag))
         auto_chat_engine = std::make_unique<Qwen3_IT>(npu_device_inst);
-    else if (qwen3_tk_Tags.count(model_tag))
+    else if (qwen3_tk_tags.count(model_tag))
         auto_chat_engine = std::make_unique<Qwen3_TK>(npu_device_inst);
-    else if (qwen3_Tags.count(model_tag))
+    else if (qwen3_tags.count(model_tag))
         auto_chat_engine = std::make_unique<Qwen3>(npu_device_inst);
-    else if (gemma3_text_Tags.count(model_tag))
+    else if (gemma3_text_tags.count(model_tag))
         auto_chat_engine = std::make_unique<Gemma3_Text_Only>(npu_device_inst);
     else if (gemma3_vlm_tags.count(model_tag))
         auto_chat_engine = std::make_unique<Gemma3>(npu_device_inst);
     else if (gpt_oss_tags.count(model_tag))
         auto_chat_engine = std::make_unique<GPT_OSS>(npu_device_inst);
+    else if (whisper_tags.count(model_tag)) {
+        header_print("Warning", "whisper is not a LLM; Running llama3.2:1b now");
+        new_model_tag = "llama3.2:1b";
+        auto_chat_engine = std::make_unique<Llama3>(npu_device_inst);
+    }
     else {
         new_model_tag = "llama3.2:1b"; // No arguments, use default tag
         auto_chat_engine = std::make_unique<Llama3>(npu_device_inst);

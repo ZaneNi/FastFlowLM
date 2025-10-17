@@ -4,7 +4,7 @@
  * \brief WebServer class and related declarations
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.13
+ * \version 0.9.14
  */
 #pragma once
 
@@ -27,6 +27,7 @@
 #include "wstream_buf.hpp"
 #include "streaming_ostream.hpp"
 #include "model_downloader.hpp"
+#include "multipart.hpp"
 #include <queue>
 #include <functional>
 

@@ -4,7 +4,7 @@
 *  \brief Runner implementation for interactive model execution
 *  \author FastFlowLM Team
 *  \date 2025-08-05
-*  \version 0.9.13
+*  \version 0.9.14
 */
 #include "runner.hpp"
 #include "harmony_filter.hpp"
@@ -33,26 +33,44 @@ std::map<std::string, runner_cmd_t> cmd_map = {
 /// \param supported_models - the list of supported models
 /// \param downloader - the downloader for the models
 /// \param tag - the tag of the model to load
-Runner::Runner(model_list& supported_models, ModelDownloader& downloader, std::string& tag, int ctx_length, bool preemption)
-    : supported_models(supported_models), downloader(downloader), tag(tag) {
-    if (ctx_length != -1) {
-        this->ctx_length = ctx_length >= 512 ? ctx_length : 512;
-    } else {
-        this->ctx_length = -1;
-    }
+Runner::Runner(model_list& supported_models, ModelDownloader& downloader, std::string& tag, bool asr, int ctx_length, bool preemption)
+    : supported_models(supported_models), downloader(downloader), tag(tag), asr(asr) {
+
     this->npu_device_inst = xrt::device(0);
     this->preemption = preemption;
+    
+    if (this->asr) {
+        // load asr model
+        std::string whisper_tag = "whisper-v3:turbo";
+        if (!this->downloader.is_model_downloaded(whisper_tag)) {
+            this->downloader.pull_model(whisper_tag);
+        }
+        this->whisper_engine = std::make_unique<Whisper>(&this->npu_device_inst);
+        nlohmann::ordered_json whisper_model_info = this->supported_models.get_model_info(whisper_tag);
+        std::string whisper_model_path = this->supported_models.get_model_path(whisper_tag);
+        this->whisper_engine->load_model(whisper_model_path, whisper_model_info, this->preemption);
+    }
+
+    if (ctx_length != -1) {
+        this->ctx_length = ctx_length >= 512 ? ctx_length : 512;
+    } 
+    else {
+        this->ctx_length = -1;
+    }
+
     if (this->auto_chat_engine != nullptr) {
         this->auto_chat_engine.reset();
     }
     std::pair<std::string, std::unique_ptr<AutoModel>> auto_model = get_auto_model(this->tag, &this->npu_device_inst);
     this->auto_chat_engine = std::move(auto_model.second);
+    
     this->tag = auto_model.first;
     if (!this->downloader.is_model_downloaded(this->tag)) {
         this->downloader.pull_model(this->tag);
     }
     nlohmann::json model_info = this->supported_models.get_model_info(this->tag);
     this->auto_chat_engine->load_model(this->supported_models.get_model_path(this->tag), model_info, this->ctx_length, this->preemption);
+
     this->generate_limit = -1;
 }
 
@@ -181,6 +199,7 @@ void Runner::run() {
             lm_uniform_input_t uniformed_input;
             this->auto_chat_engine->start_ttft_timer();
             int last_file_name_idx = 0;
+            std::string audio_context = "";
             if (first_token == "/input") {
                 std::string filename;
                 if (input_list[1][0] == '\"'){
@@ -199,9 +218,32 @@ void Runner::run() {
                     last_file_name_idx = 1;
                 }
 
+                header_print("FLM", "Loading file: " << filename);
+
                 if (filename.find(".jpg") != std::string::npos || filename.find(".png") != std::string::npos || filename.find(".jpeg") != std::string::npos) {
                     uniformed_input.images.push_back(filename);
                     uniformed_input.image_payload_types.push_back(FILE_NAME);
+                }
+                else if (filename.find(".wav") != std::string::npos || filename.find(".mp3") != std::string::npos || filename.find(".ogg") != std::string::npos || filename.find(".m4a") != std::string::npos) {
+                    if (this->asr) {
+                        // check if the file exists
+                        if (!std::filesystem::exists(filename)) {
+                            header_print("FLM", "Error: Could not open file: " << filename);
+                            header_print("FLM", "Please check if the file exists and is readable.");
+                            continue;
+                        }
+                        this->whisper_engine->load_audio(filename);
+                        std::cout << "Audio content: " << std::flush;
+                        std::pair<std::string, std::string> audio_result = this->whisper_engine->generate(Whisper::whisper_task_type_t::e_transcribe, true, false, std::cout);
+                        audio_context = audio_result.first;
+                        std::cout << std::endl;
+                        input = "Audio content (" + audio_result.second + "): " + audio_context + "\n";
+                    }
+                    else {
+                        header_print("Warning", "No asr model loaded, cannot load audio file");
+                        continue;
+                    }
+
                 }
                 else{
                     header_print("FLM", "Loading file: " << filename);

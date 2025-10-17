@@ -16,12 +16,12 @@ all:
 run:
 	@$(PWSH) "Copy-Item 'lib\\*.dll' '$(OUT_DIR)' -Force"
 	@$(PWSH) "Copy-Item 'model_list.json' '$(OUT_DIR)' -Force"
-	@$(PWSH) "cd '$(OUT_DIR)'; .\\flm.exe run llama3.2:1b"
+	@$(PWSH) "cd '$(OUT_DIR)'; .\\flm.exe run llama3.2:1b -a 1"
 
 serve:
 	@$(PWSH) "Copy-Item 'lib\\*.dll' '$(OUT_DIR)' -Force"
 	@$(PWSH) "Copy-Item 'model_list.json' '$(OUT_DIR)' -Force"
-	@$(PWSH) "cd '$(OUT_DIR)'; .\\flm.exe serve llama3.2:1b"
+	@$(PWSH) "cd '$(OUT_DIR)'; .\\flm.exe serve llama3.2:1b" 
 
 clean:
 	@$(PWSH) "Remove-Item -Recurse -Force '$(BUILD_DIR)'"
@@ -38,7 +38,7 @@ all:
 run:
 	@cp lib/*.dll $(OUT_DIR)
 	@cp model_list.json $(OUT_DIR)
-	@cd $(OUT_DIR) && ${PWSH} -Command "./flm.exe run llama3.2:1b"
+	@cd $(OUT_DIR) && ${PWSH} -Command "./flm.exe run gpt-oss -a 1"
 
 serve:
 	@cp lib/*.dll $(OUT_DIR)

@@ -2,7 +2,7 @@
 /// \brief automodel class
 /// \author FastFlowLM Team
 /// \date 2025-09-01
-/// \version 0.9.13
+/// \version 0.9.14
 /// \note This is a source file for the auto_model class
 
 #include "AutoModel/automodel.hpp"
@@ -17,7 +17,8 @@ std::unordered_set<std::string> modelTags = {
         "gemma3", "gemma3:270m", "gemma3:1b",
         "gemma3:4b",
         "medgemma", "medgemma:4b",
-        "gpt-oss", "gpt-oss:20b"
+        "gpt-oss", "gpt-oss:20b",
+        "whisper-v3", "whisper-v3:turbo"
 };
 
 AutoModel::AutoModel(xrt::device* npu_device_inst, std::string current_model) {

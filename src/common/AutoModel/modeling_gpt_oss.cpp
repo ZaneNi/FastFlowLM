@@ -2,7 +2,7 @@
 /// \brief modeling_gpt_oss class
 /// \author FastFlowLM Team
 /// \date 2025-10-01
-/// \version 0.9.13
+/// \version 0.9.14
 /// \note This is a source file for the gpt-oss class
 #include "AutoModel/modeling_gpt_oss.hpp"   
 

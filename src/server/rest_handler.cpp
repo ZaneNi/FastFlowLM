@@ -1,10 +1,10 @@
-/*!
+﻿/*!
  *  Copyright (c) 2023 by Contributors
  * \file rest_handler.cpp
  * \brief RestHandler class and related declarations
  * \author FastFlowLM Team
  * \date 2025-08-05
- * \version 0.9.13
+ * \version 0.9.14
  */
 #include "rest_handler.hpp"
 #include "wstream_buf.hpp"
@@ -24,8 +24,8 @@
 ///@param downloader the downloader
 ///@param default_tag the default tag
 ///@return the rest handler
-RestHandler::RestHandler(model_list& models, ModelDownloader& downloader, const std::string& default_tag, int ctx_length, bool preemption)
-    : supported_models(models), downloader(downloader), default_model_tag(default_tag), current_model_tag(""), preemption(preemption){
+RestHandler::RestHandler(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, int ctx_length, bool preemption)
+    : supported_models(models), downloader(downloader), default_model_tag(default_tag), current_model_tag(""), asr(asr), preemption(preemption){
     this->npu_device_inst = xrt::device(0);
 
     if (ctx_length != -1) {
@@ -34,7 +34,10 @@ RestHandler::RestHandler(model_list& models, ModelDownloader& downloader, const 
         this->ctx_length = -1;
     }
     // Initialize chat bot with default model
-    
+    if (this->asr) {
+        std::string whisper_tag = "whisper-v3:turbo";
+        ensure_asr_model_loaded(whisper_tag);
+    }
     ensure_model_loaded(default_model_tag);
 }
 
@@ -48,19 +51,32 @@ void RestHandler::ensure_model_loaded(const std::string& model_tag) {
     std::string ensure_tag = model_tag;
     if (current_model_tag != ensure_tag) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        if (!downloader.is_model_downloaded(model_tag)) {
-            downloader.pull_model(model_tag);
-        }
         if (auto_chat_engine != nullptr) {
             auto_chat_engine.reset();
         }
         std::pair<std::string, std::unique_ptr<AutoModel>> auto_model = get_auto_model(ensure_tag, &npu_device_inst);
         auto_chat_engine = std::move(auto_model.second);
         ensure_tag = auto_model.first;
+        if (!downloader.is_model_downloaded(ensure_tag)) {
+            downloader.pull_model(ensure_tag);
+        }
         nlohmann::json model_info = supported_models.get_model_info(ensure_tag);
         auto_chat_engine->load_model(supported_models.get_model_path(ensure_tag), model_info, ctx_length, preemption);
         current_model_tag = ensure_tag;
     }
+}
+
+///@brief Ensure the asr model is loaded
+///@param model_tag the model tag
+void RestHandler::ensure_asr_model_loaded(const std::string& model_tag) {
+    std::string ensure_tag = model_tag;
+    if (!downloader.is_model_downloaded(model_tag)) {
+        downloader.pull_model(model_tag);
+    }
+    this->whisper_engine = std::make_unique<Whisper>(&this->npu_device_inst);
+    nlohmann::ordered_json whisper_model_info = this->supported_models.get_model_info(ensure_tag);
+    std::string whisper_model_path = this->supported_models.get_model_path(ensure_tag);
+    this->whisper_engine->load_model(whisper_model_path, whisper_model_info, this->preemption);
 }
 
 ///@brief Handle the show request
@@ -313,7 +329,7 @@ void RestHandler::handle_models(const json& request,
                                std::function<void(const json&)> send_response,
                                StreamResponseCallback send_streaming_response) {
     try {
-        json models = supported_models.get_all_models();
+        json models = supported_models.get_all_models_ollama();
         send_response(models);
     } catch (const std::exception& e) {
         json error_response = {{"error", e.what()}};
@@ -627,6 +643,64 @@ void RestHandler::handle_openai_chat_completion(const json& request,
         }
 
     } catch (const std::exception& e) {
+        json error_response = {
+            {"error", {
+                {"message", e.what()},
+                {"type", "server_error"},
+                {"code", 500}
+            }}
+        };
+        send_response(error_response);
+    }
+}
+
+///@brief Handle the openai audio transcriptions request
+///@param request the request
+///@param send_response the send response
+///@param send_streaming_response the send streaming response
+void RestHandler::handle_openai_audio_transcriptions(const json& request,
+                                        std::function<void(const json&)> send_response,
+                                        StreamResponseCallback send_streaming_response,
+                                        std::shared_ptr<CancellationToken> cancellation_token) {
+    try {
+        std::string model = request["model"];
+        std::string file_content = request["file"].get<std::string>();
+        std::vector<uint8_t> audio_raw(file_content.begin(), file_content.end());
+        bool stream = request.value("stream", false);
+        json response;
+        if (this->asr) {
+            this->whisper_engine->load_audio(audio_raw);
+            header_print("FLM", "Transforming audio to text...");
+            // Show text 
+            std::cout << "Audio content: " << std::flush;
+            std::pair<std::string, std::string> audio_result = this->whisper_engine->generate(Whisper::whisper_task_type_t::e_transcribe, true, false, std::cout);
+            std::string audio_context = audio_result.first;
+            std::cout << std::endl;
+
+            response = {
+                {"model", model},
+                {"text", audio_context}
+                //{"usage", {
+                //    {"type", "tokens"},
+                //    {"input_tokens", 0},
+                //    {"input_tokens_details", json::array({
+                //        {
+                //            {"text_tokens", 0},
+                //            {"audio_tokens", 0}
+                //        }
+                //    })},
+                //    {"output_tokens", 0},
+                //    {"total_tokens", 0}
+                //}}
+            };
+        }
+        else {
+            header_print("Warning", "No asr model loaded, cannot load audio file");
+        }
+        send_response(response);
+        //this->whisper_engine->clear_context();
+    }
+    catch (const std::exception& e) {
         json error_response = {
             {"error", {
                 {"message", e.what()},

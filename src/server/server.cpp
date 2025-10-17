@@ -4,7 +4,7 @@
  * \brief WebServer class and related declarations
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.13
+ * \version 0.9.14
  */
 #include "server.hpp"
 #include "rest_handler.hpp"
@@ -156,7 +156,8 @@ bool requires_npu_access(const std::string& method, const std::string& path) {
     if (method == "POST") {
         return path == "/api/generate" || 
                path == "/api/chat" || 
-               path == "/v1/chat/completions";
+               path == "/v1/chat/completions" ||
+               path == "/v1/audio/transcriptions";
     }
     return false;
 }
@@ -586,15 +587,24 @@ bool WebServer::handle_request(http::request<http::string_body>& req,
     header_print("LOG", "Version: " << req.version());
     header_print("LOG", "Keep-Alive: " << req.keep_alive());
     json request_json_log;
+    bool is_json;
     try {
         if (!req.body().empty()) {
-            request_json_log = json::parse(req.body());
+            std::string content_type = std::string(req[http::field::content_type]);
+
+            if (content_type.find("application/json") != std::string::npos) {
+                json request_json_log = json::parse(req.body());
+                brief_print_message_request(request_json_log);
+                is_json = true;
+            }
+            else if (content_type.find("multipart/form-data") != std::string::npos) {
+                // print some request info 
+            }
         }
     }
     catch (const std::exception& e) {
         header_print("LOG", "Error parsing request body: " + std::string(e.what()));
     }
-    brief_print_message_request(request_json_log);
 
     // Route lookup
     std::string key = std::string(req.method_string()) + " " + std::string(req.target());
@@ -603,7 +613,7 @@ bool WebServer::handle_request(http::request<http::string_body>& req,
         // No route: respond 404 synchronously.
         res.result(http::status::not_found);
         res.body() = json{ {"error", "Not Found"} }.dump();
-        res.set(http::field::content_type, "application/json");
+        res.set(http::field::content_type, is_json ? "application/json" : "multipart/form-data");
         res.prepare_payload();
         return false; 
     }
@@ -612,13 +622,17 @@ bool WebServer::handle_request(http::request<http::string_body>& req,
     bool needs_npu = requires_npu_access(std::string(req.method_string()), std::string(req.target()));
 
     // Define a task lambda with is_deferred flag
-    auto process_task = [this, it, &req, &res, session, needs_npu, key](bool is_deferred) {
+    auto process_task = [this, it, &req, &res, session, needs_npu, key, is_json](bool is_deferred) {
 
         // Parse JSON request body
         json request_json;
         try {
             if (!req.body().empty()) {
-                request_json = json::parse(req.body());
+                if(is_json)
+                    request_json = json::parse(req.body());
+                //else 
+                    //do some parse to the MultiPart request?
+                    //std::map<std::string, MultipartPart> parts = parse_multipart(req);
             }
         }
         catch (const std::exception& e) {
@@ -664,7 +678,7 @@ bool WebServer::handle_request(http::request<http::string_body>& req,
             if (is_deferred && session) {
                 session->write_response_from_callback();
             }
-            };
+        };
 
         auto send_streaming_response = [session, this, request_id, needs_npu](const json& data, bool is_final) {
             if (session) {
@@ -677,7 +691,7 @@ bool WebServer::handle_request(http::request<http::string_body>& req,
                     this->process_next_npu_request();
                 }
             }
-            };
+        };
 
         it->second(req, send_response, send_streaming_response, session, cancellation_token);
         }; // --- End of process_task lambda ---
@@ -728,9 +742,9 @@ bool WebServer::handle_request(http::request<http::string_body>& req,
 ///@param default_tag the default tag
 ///@param port the port
 ///@return the server
-std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, int port, int ctx_length, bool cors, bool preemption) {
+std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, int port, int ctx_length, bool cors, bool preemption) {
     auto server = std::make_unique<WebServer>(port, cors);
-    auto rest_handler = std::make_shared<RestHandler>(models, downloader, default_tag, ctx_length);
+    auto rest_handler = std::make_shared<RestHandler>(models, downloader, default_tag, asr, ctx_length);
     
     // Register Ollama-compatible routes
     server->register_handler("POST", "/api/show",
@@ -854,6 +868,7 @@ std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader&
             rest_handler->handle_pull(request_json, send_response, send_streaming_response);
         });
     
+    // Add OpenAI endpoints
     server->register_handler("POST", "/v1/chat/completions",
         [rest_handler](const http::request<http::string_body>& req,
                       std::function<void(const json&)> send_response,
@@ -867,6 +882,19 @@ std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader&
             rest_handler->handle_openai_chat_completion(request_json, send_response, send_streaming_response, cancellation_token);
         });
     
+    server->register_handler("POST", "/v1/audio/transcriptions",
+        [rest_handler](const http::request<http::string_body>& req,
+            std::function<void(const json&)> send_response,
+            std::function<void(const json&, bool)> send_streaming_response,
+            std::shared_ptr<HttpSession> session,
+            std::shared_ptr<CancellationToken> cancellation_token) {
+                std::map<std::string, MultipartPart> parts = parse_multipart(req);
+                json request_json;
+                request_json["model"] = parts["model"].content;
+                request_json["file"] = parts["file"].content;
+                rest_handler->handle_openai_audio_transcriptions(request_json, send_response, send_streaming_response, cancellation_token);
+        });
+
     server->register_handler("POST", "/v1/completions",
         [rest_handler](const http::request<http::string_body>& req,
             std::function<void(const json&)> send_response,
@@ -879,7 +907,6 @@ std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader&
                 }
                 rest_handler->handle_openai_completion(request_json, send_response, send_streaming_response, cancellation_token);
         });
-
 
 
     // Add cancel endpoint - capture server by raw pointer

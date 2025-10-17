@@ -4,7 +4,7 @@
  * \brief Main entry point for the FLM application
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.13
+ * \version 0.9.14
  */
 #pragma once
 #include "utils/utils.hpp"
@@ -14,6 +14,7 @@
 #include "model_downloader.hpp"
 #include "cli_wide.hpp"
 #include "image/image_reader.hpp"
+#include "whisper/modeling_whisper.hpp"
 #include <codecvt>
 #include <vector>
 
@@ -39,13 +40,15 @@ typedef enum {
 /// \brief Runner class
 class Runner {
     public: 
-        Runner(model_list& supported_models, ModelDownloader& downloader, std::string& tag, int ctx_length, bool preemption);
+        Runner(model_list& supported_models, ModelDownloader& downloader, std::string& tag, bool asr, int ctx_length, bool preemption);
         void run();
     private:
         std::string tag;
+        bool asr;
         model_list supported_models;
         ModelDownloader& downloader;
         std::unique_ptr<AutoModel> auto_chat_engine;
+        std::unique_ptr<Whisper> whisper_engine;
         int generate_limit;
         int ctx_length;
         std::string system_prompt;
