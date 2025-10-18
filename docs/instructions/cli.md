@@ -232,7 +232,7 @@ flm serve gemma3:4b --asr 1  # Background-load Whisper and initialize the LLM (g
 
 > **Note:** ASR alone isn’t supported—an LLM must be present for end-to-end voice→text→LLM workflows.
 
-See the ASR guide: https://docs.fastflowlm.com/models/whisper.html
+See the ASR guide [here](https://docs.fastflowlm.com/models/whisper.html)
 
 ---
 

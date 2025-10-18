@@ -21,7 +21,8 @@ parent: Models
 Start with ASR enabled:
 
 ```powershell
-flm run gemma3:4b --asr 1 # Load the ASR model (whisper-v3:turbo) in the background, with concurrent LLM loading (gemma3:4b).
+flm run gemma3:4b --asr 1 
+# Load the ASR model (whisper-v3:turbo) in the background, with concurrent LLM loading (gemma3:4b).
 ```
 
 Then, type (replace `filename.mp3` with your audio file path):
@@ -35,12 +36,15 @@ Then, type (replace `filename.mp3` with your audio file path):
 Start with ASR enabled:
 
 ```powershell
-flm serve gemma3:4b --asr 1 # # Load the ASR model (whisper-v3:turbo) in the background, with concurrent LLM loading (gemma3:4b).
+flm serve gemma3:4b --asr 1 
+# Load the ASR model (whisper-v3:turbo) in the background, with concurrent LLM loading (gemma3:4b).
 ```
 
-Send audio to `POST /v1/audio/transcriptions` via any OpenAI client or Open WebUI.
+Send audio to `POST /v1/audio/transcriptions` via any OpenAI Client or Open WebUI.
 
-**Example 1**: OpenAI client
+> see more API details here → [/v1/audio/](https://platform.openai.com/docs/api-reference/audio)
+
+**Example 1**: OpenAI Client
 
 ```python
 from openai import OpenAI
@@ -66,7 +70,7 @@ with open("audio.mp3", "rb") as f:
 - In the left sidebar, navigate to Audio.
 - Set Speech-to-Text Engine to OpenAI.
 - Enter:
-> API Base URL: http://host.docker.internal:52625/v1  
+> API Base URL: `http://host.docker.internal:52625/v1`  
 > API KEY: flm (any value works)  
 > STT Model: whisper-large-v3-turbo (type in the model name; can be different)  
 - Save the setting.
