@@ -19,6 +19,50 @@
 #include <locale>
 #include <random>
 
+///@brief Normalize messages by merging consecutive user messages (like Ollama does)
+///@param messages the original messages
+///@return normalized messages with consecutive user messages merged
+nlohmann::ordered_json normalize_messages(nlohmann::ordered_json messages) {
+    if (messages.empty()) return messages;
+
+    nlohmann::ordered_json normalized = nlohmann::ordered_json::array();
+    
+    for (size_t i = 0; i < messages.size(); i++) {
+        auto current_msg = messages[i];
+        std::string role = current_msg.value("role", "");
+
+        if (role == "user") {
+            nlohmann::ordered_json merged_content_array = nlohmann::ordered_json::array();
+            
+            // Merge all consecutive user messages into array format
+            while (i < messages.size() && messages[i].value("role", "") == "user") {
+                if (messages[i].contains("content")) {
+                    if (messages[i]["content"].is_array()) {
+                        for (auto& item : messages[i]["content"]) {
+                            merged_content_array.push_back(item);
+                        }
+                    } else if (messages[i]["content"].is_string()) {
+                        std::string text = messages[i]["content"].get<std::string>();
+                        if (!text.empty()) {
+                            nlohmann::ordered_json text_item;
+                            text_item["type"] = "text";
+                            text_item["text"] = text;
+                            merged_content_array.push_back(text_item);
+                        }
+                    }
+                }
+                if (i + 1 < messages.size() && messages[i + 1].value("role", "") == "user") i++;
+                else break;
+            }
+            
+            current_msg["content"] = merged_content_array;
+        }
+        normalized.push_back(current_msg);
+    }
+
+    return normalized;
+}
+
 ///@brief RestHandler constructor
 ///@param models the model list
 ///@param downloader the downloader
@@ -212,6 +256,8 @@ void RestHandler::handle_chat(const json& request,
                              std::shared_ptr<CancellationToken> cancellation_token) {
     try {
         nlohmann::ordered_json messages = request["messages"];
+
+        messages = normalize_messages(messages);
         bool stream = request.value("stream", false);
         std::string model = request.value("model", current_model_tag);
         std::string reasoning_effort = request.value("reasoning_effort", "medium");
@@ -482,10 +528,7 @@ void RestHandler::handle_create(const json& request,
 
 
 nlohmann::ordered_json openai_to_rest(nlohmann::ordered_json messages) {
-
-    //auto msg = messages.back();
-
-    nlohmann::ordered_json rest_format;
+    nlohmann::ordered_json rest_format = nlohmann::ordered_json::array();
 
     for (auto& message : messages) {
         nlohmann::ordered_json new_message;
@@ -493,29 +536,25 @@ nlohmann::ordered_json openai_to_rest(nlohmann::ordered_json messages) {
         nlohmann::ordered_json::array_t merged_images;
 
         if (message["content"].is_string()) {
-            // Simple format: just text
             merged_text = message["content"].get<std::string>();
-        }
-        else if (message["content"].is_array()) {
-            // Structured format: extract text and image URLs
+        } else if (message["content"].is_array()) {
             for (auto& contentItem : message["content"]) {
-                if (contentItem.contains("type") && contentItem["type"] == "text") {
-                    merged_text += contentItem["text"].get<std::string>();
-                }
-                else if (contentItem.contains("type") && contentItem["type"] == "image_url") {
-                    std::string image_url = contentItem["image_url"]["url"].get<std::string>();
-                    const std::vector<std::string> prefixes = {
-                        "data:image/png;base64,",
-                        "data:image/jpeg;base64,",
-                        "data:image/jpg;base64,"
-                    };
-                    for (const auto& prefix : prefixes) {
-                        if (image_url.substr(0, prefix.length()) == prefix) {
-                            image_url = image_url.substr(prefix.length());
-                            break;
+                if (contentItem.contains("type")) {
+                    if (contentItem["type"] == "text") {
+                        merged_text += contentItem["text"].get<std::string>();
+                    } else if (contentItem["type"] == "image_url") {
+                        std::string image_url = contentItem["image_url"]["url"].get<std::string>();
+                        const std::vector<std::string> prefixes = {
+                            "data:image/png;base64,", "data:image/jpeg;base64,", "data:image/jpg;base64,"
+                        };
+                        for (const auto& prefix : prefixes) {
+                            if (image_url.substr(0, prefix.length()) == prefix) {
+                                image_url = image_url.substr(prefix.length());
+                                break;
+                            }
                         }
+                        merged_images.push_back(image_url);
                     }
-                    merged_images.push_back(image_url);
                 }
             }
         }
@@ -542,6 +581,9 @@ void RestHandler::handle_openai_chat_completion(const json& request,
                                                std::shared_ptr<CancellationToken> cancellation_token) {
     try {
         nlohmann::ordered_json messages_openai = request["messages"];
+
+        messages_openai = normalize_messages(messages_openai);
+
         std::string model = request.value("model", current_model_tag);
         std::string reasoning_effort = request.value("reasoning_effort", "medium");
         bool stream = request.value("stream", false);
