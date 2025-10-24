@@ -2,7 +2,7 @@
 /// \brief Main entry point for the FLM application
 /// \author FastFlowLM Team
 /// \date 2025-08-05
-/// \version 0.9.14
+/// \version 0.9.15
 /// \note This is a source file for the main entry point
 #pragma once
 #include "runner.hpp"
@@ -122,7 +122,7 @@ void handle_user_input() {
 ///@param default_tag the default tag
 ///@param port the port to listen on, default is 52625, same with the ollama server
 ///@return the server
-std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, int port, int ctx_length, bool cors, bool preemption);
+std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, bool embed, int port, int ctx_length, bool cors, bool preemption);
 
 
 ///@brief get_server_port gets the server port from environment variable FLM_SERVE_PORT
@@ -211,6 +211,7 @@ int main(int argc, char* argv[]) {
     std::string list_filter = parsed_args.list_filter;
     bool cors = parsed_args.cors;
     bool asr = parsed_args.asr;
+    bool embed = parsed_args.embed;
 
     // Set process priority to high for better performance
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
@@ -265,14 +266,14 @@ int main(int argc, char* argv[]) {
 
         if (command == "run") {
             check_and_notify_new_version();
-            Runner runner(supported_models, downloader, tag, asr, ctx_length, preemption);
+            Runner runner(supported_models, downloader, tag, asr, embed, ctx_length, preemption);
             runner.run();
 
         } else if (command == "serve") {
             check_and_notify_new_version();
             // Create the server
             int port = get_server_port(user_port);
-            auto server = create_lm_server(supported_models, downloader, tag, asr, port, ctx_length, cors, preemption);
+            auto server = create_lm_server(supported_models, downloader, tag, asr, embed, port, ctx_length, cors, preemption);
             server->set_max_connections(max_socket_connections);           // Allow up to 10 concurrent connections
             server->set_io_threads(10);          // Allow up to 5 io threads
             server->set_npu_queue_length(max_npu_queue);           // Allow up to 10 concurrent queue

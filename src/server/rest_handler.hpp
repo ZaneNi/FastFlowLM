@@ -4,12 +4,13 @@
  * \brief RestHandler class and related declarations
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.14
+ * \version 0.9.15
  */
 #pragma once
 
 #include "AutoModel/all_models.hpp"
 #include "whisper/modeling_whisper.hpp"
+#include "AutoEmbeddingModel/all_embedding_model.hpp"
 #include "model_list.hpp"
 #include "model_downloader.hpp"
 #include <nlohmann/json.hpp>
@@ -27,7 +28,7 @@ using StreamResponseCallback = std::function<void(const json&, bool)>; // data, 
 
 class RestHandler {
 public:
-    RestHandler(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, int ctx_length = -1, bool preemption = false);
+    RestHandler(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, bool embed, int ctx_length = -1, bool preemption = false);
     ~RestHandler();
 
     void handle_show(const json& request,
@@ -103,15 +104,18 @@ public:
 private:
     void ensure_model_loaded(const std::string& model_tag);
     void ensure_asr_model_loaded(const std::string& model_tag);
+    void ensure_embed_model_loaded(const std::string& model_tag);
 
     std::unique_ptr<AutoModel> auto_chat_engine;
     std::unique_ptr<Whisper> whisper_engine;
+    std::unique_ptr<AutoEmbeddingModel> auto_embedding_engine;
     xrt::device npu_device_inst;
     model_list& supported_models;
     ModelDownloader& downloader;
     std::string current_model_tag;
     std::string default_model_tag;
     bool asr;
+    bool embed;
     int generate_context_id;
     int chat_context_id;
     int ctx_length;

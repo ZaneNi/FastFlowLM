@@ -4,7 +4,7 @@
 
 AppName=flm
 
-AppVersion=0.9.12
+AppVersion=0.9.15
 
 AppPublisher=FastFlowLM
 
@@ -47,10 +47,12 @@ Source: "libcurl.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "llama_npu.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gemma_npu.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gemma_text_npu.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "gemma_embedding.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpt_oss_npu.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "qwen_npu.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "lm_head.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dequant.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "whisper_npu.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gemm.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "npu_utils.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "msvcp140.dll"; DestDir: "{app}"; Flags: ignoreversion
@@ -69,6 +71,9 @@ Source: "libprotoc.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "swresample-5.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "swscale-8.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "zlib1.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "libfftw3-3.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "libfftw3f-3.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "libfftw3l-3.dll"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Application icon (used for shortcuts)
 

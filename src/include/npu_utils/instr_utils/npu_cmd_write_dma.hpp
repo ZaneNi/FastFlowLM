@@ -91,7 +91,7 @@ struct npu_dma_block_cmd : public npu_cmd{
     uint32_t get_lock_acq_val;
     uint32_t get_lock_acq_id;
 
-
+    cache_flag_t cache_flag;
 
     void dump_cmd(uint32_t *bd){
         assert(*bd == XAIE_IO_BLOCKWRITE);
@@ -134,7 +134,7 @@ struct npu_dma_block_cmd : public npu_cmd{
         }
         this->dim2_stride = (bd[9] >> dim_stride_shift) & dim_stride_mask;
         this->dim2_stride += 1; // The saved value is the stride - 1
-        
+        this->cache_flag = cache_flag_t((bd[9] >> ax_cache_shift) & ax_cache_mask);
         // word 7: D3, Iteration dimension
         this->iter_size = (bd[10] >> iter_size_shift) & iter_size_mask;
         this->iter_stride = (bd[10] >> iter_stride_shift) & iter_stride_mask;
@@ -239,7 +239,7 @@ struct npu_dma_block_cmd : public npu_cmd{
         npu_seq.push_back((this->dim0_size << dim_size_shift) | ((this->dim0_stride - 1) << dim_stride_shift));
         npu_seq.push_back(0xc0000000 | (this->dim1_size << dim_size_shift) | ((this->dim1_stride - 1) << dim_stride_shift));
         // npu_seq.push_back((0 << dim_size_shift) | ((this->dim2_stride - 1) << dim_stride_shift)); // dim 2 size is not required to be set
-        npu_seq.push_back((0x2 << ax_cache_shift) | ((this->dim2_stride - 1) << dim_stride_shift)); // upper bits used for QoS fields ex. AxCache 
+        npu_seq.push_back((this->cache_flag << ax_cache_shift) | ((this->dim2_stride - 1) << dim_stride_shift)); // upper bits used for QoS fields ex. AxCache 
 
         npu_seq.push_back(((this->iter_size - 1) << iter_size_shift) | ((this->iter_stride - 1) << iter_stride_shift));
         npu_seq.push_back(

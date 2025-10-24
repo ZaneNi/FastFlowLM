@@ -4,7 +4,7 @@
  * \brief WebServer class and related declarations
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.14
+ * \version 0.9.15
  */
 #include "server.hpp"
 #include "rest_handler.hpp"
@@ -157,7 +157,8 @@ bool requires_npu_access(const std::string& method, const std::string& path) {
         return path == "/api/generate" || 
                path == "/api/chat" || 
                path == "/v1/chat/completions" ||
-               path == "/v1/audio/transcriptions";
+               path == "/v1/audio/transcriptions" ||
+               path == "/v1/embeddings";
     }
     return false;
 }
@@ -742,9 +743,9 @@ bool WebServer::handle_request(http::request<http::string_body>& req,
 ///@param default_tag the default tag
 ///@param port the port
 ///@return the server
-std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, int port, int ctx_length, bool cors, bool preemption) {
+std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, bool embed, int port, int ctx_length, bool cors, bool preemption) {
     auto server = std::make_unique<WebServer>(port, cors);
-    auto rest_handler = std::make_shared<RestHandler>(models, downloader, default_tag, asr, ctx_length);
+    auto rest_handler = std::make_shared<RestHandler>(models, downloader, default_tag, asr, embed, ctx_length);
     
     // Register Ollama-compatible routes
     server->register_handler("POST", "/api/show",
@@ -818,16 +819,6 @@ std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader&
             json request_json;
             rest_handler->handle_models(request_json, send_response, send_streaming_response);
         });
-
-    server->register_handler("GET", "/v1/models",
-        [rest_handler](const http::request<http::string_body>& req,
-            std::function<void(const json&)> send_response,
-            std::function<void(const json&, bool)> send_streaming_response,
-            std::shared_ptr<HttpSession> session,
-            std::shared_ptr<CancellationToken> cancellation_token) {
-                json request_json;
-                rest_handler->handle_models_openai(request_json, send_response, send_streaming_response);
-        });
     
     server->register_handler("GET", "/api/version",
         [rest_handler](const http::request<http::string_body>& req,
@@ -869,6 +860,29 @@ std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader&
         });
     
     // Add OpenAI endpoints
+    server->register_handler("GET", "/v1/models",
+        [rest_handler](const http::request<http::string_body>& req,
+            std::function<void(const json&)> send_response,
+            std::function<void(const json&, bool)> send_streaming_response,
+            std::shared_ptr<HttpSession> session,
+            std::shared_ptr<CancellationToken> cancellation_token) {
+                json request_json;
+                rest_handler->handle_models_openai(request_json, send_response, send_streaming_response);
+        });
+
+    server->register_handler("POST", "/v1/embeddings",
+        [rest_handler](const http::request<http::string_body>& req,
+            std::function<void(const json&)> send_response,
+            std::function<void(const json&, bool)> send_streaming_response,
+            std::shared_ptr<HttpSession> session,
+            std::shared_ptr<CancellationToken> cancellation_token) {
+                json request_json;
+                if (!req.body().empty()) {
+                    request_json = json::parse(req.body());
+                }
+                rest_handler->handle_embeddings(request_json, send_response, send_streaming_response);
+        });
+
     server->register_handler("POST", "/v1/chat/completions",
         [rest_handler](const http::request<http::string_body>& req,
                       std::function<void(const json&)> send_response,

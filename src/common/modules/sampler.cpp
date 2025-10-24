@@ -2,7 +2,7 @@
 /// \brief sampler class
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.14
+/// \version 0.9.15
 /// \note This is a header file for the sampler class
 #pragma once
 
@@ -73,11 +73,11 @@ int Sampler::sample(buffer<bf16>& x) {
         _mm256_storeu_ps(&this->logits[i], fp32_vals_x);
     }
     for (; i < in_features; i++) {
-        this->logits[i] = x[i].as_float();
+        this->logits[i] = x[i];
     }
     #else
     for (int i = 0; i < in_features; i++) {
-        this->logits[i] = x[i].as_float();
+        this->logits[i] = x[i];
     }
     #endif
 

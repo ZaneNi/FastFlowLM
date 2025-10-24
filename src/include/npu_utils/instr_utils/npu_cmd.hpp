@@ -62,6 +62,12 @@ typedef enum {
     MM2S
 } dma_direction;
 
+typedef enum :uint32_t {
+    no_cache = 0x00,
+    normal_cache = 0x02,
+    aggressive_cache = 0x0e
+} cache_flag_t;
+
 inline void instr_print(int line_number, uint32_t word, std::string msg){
     if (line_number == -1){ // -1 for the case when one line has multiple messages
         MSG_BOX_LINE(INSTR_PRINT_WIDTH, std::dec << std::setw(7) << " | " << std::setw(11) << " | " << msg);
