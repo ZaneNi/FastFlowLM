@@ -2,7 +2,7 @@
 /// \brief model_list class
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.14
+/// \version 0.9.15
 /// \note This class is used to manage the model list.
 #pragma once
 #include "nlohmann/json.hpp"
@@ -12,7 +12,7 @@
 #include <vector>
 #include "utils/utils.hpp"
 
-#define __FLM_VERSION__ "0.9.14"
+#define __FLM_VERSION__ "0.9.15"
 
 /// \note This class is used to manage the model list.
 class model_list {
@@ -163,6 +163,7 @@ class model_list {
 
             for (const auto& [model_type, model_subset] : this->config["models"].items()) {
                 if (model_type == "whisper-v3") continue;
+                else if (model_type == "embed-gemma") continue;
                 for (const auto& [size, model_info] : model_subset.items()) {
                     nlohmann::json model_entry = {
                         {"name", model_type + ":" + size},
@@ -194,6 +195,7 @@ class model_list {
 
             for (const auto& [model_type, model_subset] : this->config["models"].items()) {
                 if (model_type == "whisper-v3") continue;
+                else if (model_type == "embed-gemma") continue;
                 for (const auto& [size, model_info] : model_subset.items()) {
                     // id uses the same "type:size" convention; created uses current epoch seconds
                     nlohmann::json model_entry = {

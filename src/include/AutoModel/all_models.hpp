@@ -2,7 +2,7 @@
 /// \brief all_models class
 /// \author FastFlowLM Team
 /// \date 2025-09-10
-/// \version 0.9.14
+/// \version 0.9.15
 /// \note This is a header file for the all_models class
 #pragma once
 
@@ -72,7 +72,10 @@ inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const s
         "gpt-oss:20b", "gpt-oss"
     };
     static std::unordered_set<std::string> whisper_tags = {
-        " whisper-v3:turbo", "whisper-v3", "whisper"
+        "whisper-v3:turbo", "whisper-v3", "whisper"
+    };
+    static std::unordered_set<std::string> embedgemma_tags = {
+        "embed-gemma:300m", "embed-gemma"
     };
 
     std::unique_ptr<AutoModel> auto_chat_engine = nullptr;
@@ -97,6 +100,11 @@ inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const s
         auto_chat_engine = std::make_unique<GPT_OSS>(npu_device_inst);
     else if (whisper_tags.count(model_tag)) {
         header_print("Warning", "whisper is not a LLM; Running llama3.2:1b now");
+        new_model_tag = "llama3.2:1b";
+        auto_chat_engine = std::make_unique<Llama3>(npu_device_inst);
+    }
+    else if (embedgemma_tags.count(model_tag)) {
+        header_print("Warning", "embed-gemma is not a LLM; Running llama3.2:1b now");
         new_model_tag = "llama3.2:1b";
         auto_chat_engine = std::make_unique<Llama3>(npu_device_inst);
     }

@@ -2,7 +2,7 @@
 /// \brief Model downloader class
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.14
+/// \version 0.9.15
 /// \note This class is used to download models from the huggingface
 #pragma once
 

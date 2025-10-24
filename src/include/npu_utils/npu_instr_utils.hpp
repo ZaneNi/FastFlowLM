@@ -146,7 +146,10 @@ class npu_sequence{
             const std::vector<uint32_t>& _stride,
             int packet_id = -1,
             int packet_type = 0,
-            bool issue_token = false
+            bool issue_token = false,
+            cache_flag_t cache_flag = normal_cache,
+            int shm_control_packed_id=15,
+            bool submit_to_queue=true
         );
         void npu_dma_wait(npu_tiles tile, dma_direction channel_direction, npu_it_channel it_channel);
         void npu_maskwrite(npu_tiles tile, uint32_t addr, uint32_t value, uint32_t mask);

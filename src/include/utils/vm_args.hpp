@@ -2,7 +2,7 @@
 /// \brief vm_args class
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.14
+/// \version 0.9.15
 /// \note This class is used to parse the command line arguments.
 #pragma once
 
@@ -33,6 +33,7 @@ struct ParsedArgs {
     int port;
     bool cors;
     bool asr;
+    bool embed;
     ParsedArgs() : power_mode("performance"), force_redownload(false), 
                    version_requested(false), port_requested(false),
                    quiet_list(false) {}
@@ -54,6 +55,8 @@ bool parse_options(int argc, char *argv[], ParsedArgs& parsed_args) {
              "Set power mode: powersaver, balanced, performance, turbo")
             ("asr,a", po::value<bool>(&parsed_args.asr)->default_value(0),
              "If load asr model")
+            ("embed,e", po::value<bool>(&parsed_args.embed)->default_value(0),
+            "If load embed model")
             ("port,p", po::value<int>(&parsed_args.port)->default_value(-1), 
              "Set the server port number (for serve command)")
             ("force", po::bool_switch(&parsed_args.force_redownload),
@@ -122,6 +125,7 @@ bool parse_options(int argc, char *argv[], ParsedArgs& parsed_args) {
             std::cout << "  " << argv[0] << " serve llama3.2:1b --port 8000" << std::endl;
             std::cout << "  " << argv[0] << " serve llama3.2:1b --cors 0" << std::endl;
             std::cout << "  " << argv[0] << " serve llama3.2:1b --asr 1" << std::endl;
+            std::cout << "  " << argv[0] << " serve llama3.2:1b --embed 1" << std::endl;
             std::cout << "  " << argv[0] << " list" << std::endl;
             std::cout << "  " << argv[0] << " list --quiet" << std::endl;
             std::cout << "  " << argv[0] << " list --filter installed" << std::endl;
@@ -165,6 +169,7 @@ bool parse_options(int argc, char *argv[], ParsedArgs& parsed_args) {
                 std::cout << "  " << argv[0] << " serve llama3.2:1b --port 8000" << std::endl;
                 std::cout << "  " << argv[0] << " serve llama3.2:1b --cors 0" << std::endl;
                 std::cout << "  " << argv[0] << " serve llama3.2:1b --asr 1" << std::endl;
+                std::cout << "  " << argv[0] << " serve llama3.2:1b --embed 1" << std::endl;
                 std::cout << "  " << argv[0] << " list" << std::endl;
                 std::cout << "  " << argv[0] << " list --quiet" << std::endl;
                 std::cout << "  " << argv[0] << " list --filter installed" << std::endl;

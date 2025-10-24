@@ -4,10 +4,11 @@
 *  \brief Runner implementation for interactive model execution
 *  \author FastFlowLM Team
 *  \date 2025-08-05
-*  \version 0.9.14
+*  \version 0.9.15
 */
 #include "runner.hpp"
 #include "harmony_filter.hpp"
+#include "AutoEmbeddingModel/all_embedding_model.hpp"
 #include <iostream>
 #include <sstream>
 #include <filesystem>
@@ -33,12 +34,17 @@ std::map<std::string, runner_cmd_t> cmd_map = {
 /// \param supported_models - the list of supported models
 /// \param downloader - the downloader for the models
 /// \param tag - the tag of the model to load
-Runner::Runner(model_list& supported_models, ModelDownloader& downloader, std::string& tag, bool asr, int ctx_length, bool preemption)
-    : supported_models(supported_models), downloader(downloader), tag(tag), asr(asr) {
+Runner::Runner(model_list& supported_models, ModelDownloader& downloader, std::string& tag, bool asr, bool embed, int ctx_length, bool preemption)
+    : supported_models(supported_models), downloader(downloader), tag(tag), asr(asr), embed(embed) {
 
     this->npu_device_inst = xrt::device(0);
     this->preemption = preemption;
-    
+
+
+    if (this->embed) {
+        header_print("Warning", "Embed model not supported in CLI; Use 'flm serve -e 1'");
+    }
+
     if (this->asr) {
         // load asr model
         std::string whisper_tag = "whisper-v3:turbo";
@@ -260,10 +266,16 @@ void Runner::run() {
                     file.close();
                     input = file_content + "\n";
                 }
+                std::cout << "Last file name index: " << last_file_name_idx << std::endl;
+                for (int i = 0; i < input_list.size(); i++) {
+                    std::cout << "Input list[" << i << "]: " << input_list[i] << std::endl;
+                }
                 for (int i = last_file_name_idx + 1; i < input_list.size() - 1; i++) {
                     input += input_list[i] + " ";
                 }
-                input += input_list[input_list.size() - 1];
+                if (last_file_name_idx < input_list.size() - 1) {
+                    input += input_list[input_list.size() - 1];
+                }
                 std::cout << std::endl;
             }
 
@@ -276,6 +288,7 @@ void Runner::run() {
                 header_print("WARNING", "Max length reached, stopping generation...");
                 break;
             }
+
             this->auto_chat_engine->stop_ttft_timer();
             
             // Use harmony filter for gpt-oss models

@@ -86,6 +86,7 @@ target_link_libraries(flm PUBLIC
     gemma_text_npu
     gpt_oss_npu
     whisper_npu
+    gemma_embedding
     dequant
     gemm
     lm_head

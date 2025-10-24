@@ -1,10 +1,10 @@
-﻿/*!
+/*!
  *  Copyright (c) 2023 by Contributors
  * \file rest_handler.cpp
  * \brief RestHandler class and related declarations
  * \author FastFlowLM Team
  * \date 2025-08-05
- * \version 0.9.14
+ * \version 0.9.15
  */
 #include "rest_handler.hpp"
 #include "wstream_buf.hpp"
@@ -22,18 +22,18 @@
 ///@brief Normalize messages by merging consecutive user messages (like Ollama does)
 ///@param messages the original messages
 ///@return normalized messages with consecutive user messages merged
-nlohmann::ordered_json normalize_messages(nlohmann::ordered_json messages) {
+static nlohmann::ordered_json normalize_messages(nlohmann::ordered_json messages) {
     if (messages.empty()) return messages;
 
     nlohmann::ordered_json normalized = nlohmann::ordered_json::array();
-    
+
     for (size_t i = 0; i < messages.size(); i++) {
         auto current_msg = messages[i];
         std::string role = current_msg.value("role", "");
 
         if (role == "user") {
             nlohmann::ordered_json merged_content_array = nlohmann::ordered_json::array();
-            
+
             // Merge all consecutive user messages into array format
             while (i < messages.size() && messages[i].value("role", "") == "user") {
                 if (messages[i].contains("content")) {
@@ -41,7 +41,8 @@ nlohmann::ordered_json normalize_messages(nlohmann::ordered_json messages) {
                         for (auto& item : messages[i]["content"]) {
                             merged_content_array.push_back(item);
                         }
-                    } else if (messages[i]["content"].is_string()) {
+                    }
+                    else if (messages[i]["content"].is_string()) {
                         std::string text = messages[i]["content"].get<std::string>();
                         if (!text.empty()) {
                             nlohmann::ordered_json text_item;
@@ -54,7 +55,7 @@ nlohmann::ordered_json normalize_messages(nlohmann::ordered_json messages) {
                 if (i + 1 < messages.size() && messages[i + 1].value("role", "") == "user") i++;
                 else break;
             }
-            
+
             current_msg["content"] = merged_content_array;
         }
         normalized.push_back(current_msg);
@@ -63,13 +64,61 @@ nlohmann::ordered_json normalize_messages(nlohmann::ordered_json messages) {
     return normalized;
 }
 
+static nlohmann::ordered_json openai_to_rest(nlohmann::ordered_json messages) {
+    nlohmann::ordered_json rest_format = nlohmann::ordered_json::array();
+
+    for (auto& message : messages) {
+        nlohmann::ordered_json new_message;
+        std::string merged_text;
+        nlohmann::ordered_json::array_t merged_images;
+
+        if (message["content"].is_string()) {
+            // Simple format: just text
+            merged_text = message["content"].get<std::string>();
+        }
+        else if (message["content"].is_array()) {
+            // Structured format: extract text and image URLs
+            for (auto& contentItem : message["content"]) {
+                if (contentItem.contains("type") && contentItem["type"] == "text") {
+                    merged_text += contentItem["text"].get<std::string>();
+                }
+                else if (contentItem.contains("type") && contentItem["type"] == "image_url") {
+                    std::string image_url = contentItem["image_url"]["url"].get<std::string>();
+                    const std::vector<std::string> prefixes = {
+                        "data:image/png;base64,",
+                        "data:image/jpeg;base64,",
+                        "data:image/jpg;base64,"
+                    };
+                    for (const auto& prefix : prefixes) {
+                        if (image_url.substr(0, prefix.length()) == prefix) {
+                            image_url = image_url.substr(prefix.length());
+                            break;
+                        }
+                    }
+                    merged_images.push_back(image_url);
+                }
+            }
+        }
+
+        new_message["role"] = message["role"];
+        new_message["content"] = merged_text;
+        if (!merged_images.empty()) {
+            new_message["images"] = merged_images;
+        }
+
+        rest_format.push_back(new_message);
+    }
+
+    return rest_format;
+}
+
 ///@brief RestHandler constructor
 ///@param models the model list
 ///@param downloader the downloader
 ///@param default_tag the default tag
 ///@return the rest handler
-RestHandler::RestHandler(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, int ctx_length, bool preemption)
-    : supported_models(models), downloader(downloader), default_model_tag(default_tag), current_model_tag(""), asr(asr), preemption(preemption){
+RestHandler::RestHandler(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, bool embed, int ctx_length, bool preemption)
+    : supported_models(models), downloader(downloader), default_model_tag(default_tag), current_model_tag(""), asr(asr), embed(embed), preemption(preemption){
     this->npu_device_inst = xrt::device(0);
 
     if (ctx_length != -1) {
@@ -81,6 +130,10 @@ RestHandler::RestHandler(model_list& models, ModelDownloader& downloader, const 
     if (this->asr) {
         std::string whisper_tag = "whisper-v3:turbo";
         ensure_asr_model_loaded(whisper_tag);
+    }
+    if (this->embed) {
+        std::string embed_tag = "embed-gemma:300m";
+        ensure_embed_model_loaded(embed_tag);
     }
     ensure_model_loaded(default_model_tag);
 }
@@ -114,13 +167,27 @@ void RestHandler::ensure_model_loaded(const std::string& model_tag) {
 ///@param model_tag the model tag
 void RestHandler::ensure_asr_model_loaded(const std::string& model_tag) {
     std::string ensure_tag = model_tag;
-    if (!downloader.is_model_downloaded(model_tag)) {
-        downloader.pull_model(model_tag);
+    if (!downloader.is_model_downloaded(ensure_tag)) {
+        downloader.pull_model(ensure_tag);
     }
     this->whisper_engine = std::make_unique<Whisper>(&this->npu_device_inst);
     nlohmann::ordered_json whisper_model_info = this->supported_models.get_model_info(ensure_tag);
     std::string whisper_model_path = this->supported_models.get_model_path(ensure_tag);
     this->whisper_engine->load_model(whisper_model_path, whisper_model_info, this->preemption);
+}
+
+///@brief Ensure the embed model is loaded
+///@param model_tag the model tag
+void RestHandler::ensure_embed_model_loaded(const std::string& model_tag) {
+    std::string ensure_tag = model_tag;
+    if (!this->downloader.is_model_downloaded(ensure_tag)) {
+        this->downloader.pull_model(ensure_tag);
+    }
+    auto [embedding_model_tag, auto_embedding_engine] = get_auto_embedding_model(ensure_tag, &this->npu_device_inst);
+    this->auto_embedding_engine = std::move(auto_embedding_engine);
+    nlohmann::ordered_json embedding_model_info = this->supported_models.get_model_info(embedding_model_tag);
+    std::string embedding_model_path = this->supported_models.get_model_path(embedding_model_tag);
+    this->auto_embedding_engine->load_model(embedding_model_path, embedding_model_info, this->preemption);
 }
 
 ///@brief Handle the show request
@@ -269,6 +336,7 @@ void RestHandler::handle_chat(const json& request,
         float repetition_penalty = options.value("repeat_penalty", 1.1);
         int length_limit = options.value("num_predict", 4096);
         bool enable_thinking = request.value("think", false);
+
         auto load_start_time = time_utils::now();
         ensure_model_loaded(model);
         auto load_end_time = time_utils::now();
@@ -280,11 +348,11 @@ void RestHandler::handle_chat(const json& request,
         auto_chat_engine->configure_parameter("enable_think", enable_thinking);
         auto_chat_engine->configure_parameter("reasoning_effort", reasoning_effort);
 
+        messages = normalize_messages(messages);
+        
         chat_meta_info_t meta_info;
         lm_uniform_input_t uniformed_input;
         meta_info.load_duration = (uint64_t)time_utils::duration_ns(load_start_time, load_end_time).first;
-        // void* payload = pixel_values.size() > 0 ? static_cast<void*>(&pixel_values) : nullptr;
-        void* payload = nullptr;
         header_print("FLM", "Start generating...");
         if (stream) {
             // Streaming response using streaming_ostream
@@ -352,16 +420,46 @@ void RestHandler::handle_embeddings(const json& request,
                                    std::function<void(const json&)> send_response,
                                    StreamResponseCallback send_streaming_response) {
     try {
-        std::string prompt = request["prompt"];
+        std::string model = request["model"];
+        //std::string input = request["input"];
+        std::string input;
+        if (request["input"].is_string()) {
+            input = request["input"];
+        }
+        else if (request["input"].is_array() && !request["input"].empty()) {
+            input = request["input"][0];
+        }
+
+        //std::string encoding_format = request["encoding_format"];
+
         
-        // Note: This is a placeholder. You'll need to implement actual embedding generation
-        std::vector<float> embeddings(auto_chat_engine->get_current_context_length(), 0.0f);
-        
-        json response = {
-            {"embeddings", embeddings}
-        };
+        json response;
+        if (this->embed) {
+            std::cout << "Embedding input: " << input << std::endl;
+            std::vector<float> embedding_result = this->auto_embedding_engine->embed(input, embedding_task_type_t::task_query);
+            
+            response = {
+                {"object", "list"},
+                {"data", json::array({
+                    {
+                        {"object", "embedding"},
+                        {"embedding", embedding_result},
+                        {"index", 0}
+                    }
+                })},
+                {"model", model},
+                {"usage", {
+                    {"prompt_tokens", 0},
+                    {"total_tokens", 0}
+                }}
+            };
+        }
+        else {
+            header_print("Warning", "No embedding model loaded");
+        }
         send_response(response);
-    } catch (const std::exception& e) {
+    } 
+    catch (const std::exception& e) {
         json error_response = {{"error", e.what()}};
         send_response(error_response);
     }
@@ -525,52 +623,6 @@ void RestHandler::handle_create(const json& request,
     send_response(error_response);
 }
 
-
-
-nlohmann::ordered_json openai_to_rest(nlohmann::ordered_json messages) {
-    nlohmann::ordered_json rest_format = nlohmann::ordered_json::array();
-
-    for (auto& message : messages) {
-        nlohmann::ordered_json new_message;
-        std::string merged_text;
-        nlohmann::ordered_json::array_t merged_images;
-
-        if (message["content"].is_string()) {
-            merged_text = message["content"].get<std::string>();
-        } else if (message["content"].is_array()) {
-            for (auto& contentItem : message["content"]) {
-                if (contentItem.contains("type")) {
-                    if (contentItem["type"] == "text") {
-                        merged_text += contentItem["text"].get<std::string>();
-                    } else if (contentItem["type"] == "image_url") {
-                        std::string image_url = contentItem["image_url"]["url"].get<std::string>();
-                        const std::vector<std::string> prefixes = {
-                            "data:image/png;base64,", "data:image/jpeg;base64,", "data:image/jpg;base64,"
-                        };
-                        for (const auto& prefix : prefixes) {
-                            if (image_url.substr(0, prefix.length()) == prefix) {
-                                image_url = image_url.substr(prefix.length());
-                                break;
-                            }
-                        }
-                        merged_images.push_back(image_url);
-                    }
-                }
-            }
-        }
-
-        new_message["role"] = message["role"];
-        new_message["content"] = merged_text;
-        if (!merged_images.empty()) {
-            new_message["images"] = merged_images;
-        }
-
-        rest_format.push_back(new_message);
-    }
-
-    return rest_format;
-}
-
 ///@brief Handle the openai chat completion request
 ///@param request the request
 ///@param send_response the send response
@@ -580,6 +632,7 @@ void RestHandler::handle_openai_chat_completion(const json& request,
                                                StreamResponseCallback send_streaming_response,
                                                std::shared_ptr<CancellationToken> cancellation_token) {
     try {
+        // Extract OpenAI-style parameters
         nlohmann::ordered_json messages_openai = request["messages"];
 
         messages_openai = normalize_messages(messages_openai);
@@ -587,8 +640,6 @@ void RestHandler::handle_openai_chat_completion(const json& request,
         std::string model = request.value("model", current_model_tag);
         std::string reasoning_effort = request.value("reasoning_effort", "medium");
         bool stream = request.value("stream", false);
-
-        // Extract OpenAI-style parameters
         json options = request.value("options", json::object());
         float temperature = request.value("temperature", 0.6);
         float top_p = request.value("top_p", 0.9);
@@ -597,10 +648,12 @@ void RestHandler::handle_openai_chat_completion(const json& request,
         float repetition_penalty = request.value("repeat_penalty", 1.1);
         int length_limit = request.value("max_tokens", 4096);
         bool enable_thinking = request.value("think", false);
+
         auto load_start_time = time_utils::now();
         ensure_model_loaded(model);
         auto load_end_time = time_utils::now();
 
+        messages_openai = normalize_messages(messages_openai);
         nlohmann::ordered_json messages = openai_to_rest(messages_openai);
 
         auto_chat_engine->set_temperature(temperature);
@@ -763,12 +816,11 @@ void RestHandler::handle_openai_completion(const json& request,
     StreamResponseCallback send_streaming_response,
     std::shared_ptr<CancellationToken> cancellation_token) {
     try {
+        // Extract OpenAI-style parameters
         std::string prompt = request["prompt"];
         std::string model = request.value("model", current_model_tag);
         std::string reasoning_effort = request.value("reasoning_effort", "medium");
         bool stream = request.value("stream", false);
-
-        // Extract OpenAI-style parameters
         json options = request.value("options", json::object());
         float temperature = request.value("temperature", 0.6);
         float top_p = request.value("top_p", 0.9);
@@ -778,9 +830,9 @@ void RestHandler::handle_openai_completion(const json& request,
         bool enable_thinking = request.value("think", false);
 
         ensure_model_loaded(model);
+
         auto_chat_engine->configure_parameter("enable_think", enable_thinking);
         auto_chat_engine->configure_parameter("reasoning_effort", reasoning_effort);
-
         auto_chat_engine->set_temperature(temperature);
         auto_chat_engine->set_topp(top_p);
         auto_chat_engine->set_topk(top_k);

@@ -2,7 +2,7 @@
 /// \brief tokenizer class
 /// \author FastFlowLM Team
 /// \date 2025-08-05
-/// \version 0.9.14
+/// \version 0.9.15
 /// \note This class is used to tokenize the text.
 #pragma once
 

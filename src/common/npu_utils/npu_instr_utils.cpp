@@ -283,7 +283,10 @@ void npu_sequence::npu_dma_memcpy_nd(
     const std::vector<uint32_t>& _stride,
     int packet_id,
     int packet_type,
-    bool issue_token
+    bool issue_token,
+    cache_flag_t cache_flag,
+    int shm_control_packet_id,
+    bool submit_to_queue
 ){
     assert(elem_size <= 4); // not supported
     if (this->is_valid == true) {
@@ -353,16 +356,39 @@ void npu_sequence::npu_dma_memcpy_nd(
         cmd->dim2_stride = 1;
     }
     else{
+        //https://github.com/Xilinx/mlir-aie/blob/2c7887524141d929f919649e3f247cbd1e8b7ae2/lib/Dialect/AIEX/IR/AIEXDialect.cpp#L171
+        constexpr int step_bits = 20; 
+        constexpr int wrap_bits = 10; 
+        
+        if(size[3] > (1<< wrap_bits)){
+            header_print("ERROR", ": step_3 out ouf range");
+        }
+        if(stride[3] > (1<< step_bits)){
+            header_print("ERROR", ": stride_3 out of range");
+        }
+        if(size[2] > (1<< wrap_bits)){
+            header_print("ERROR", ": step_2 out ouf range");
+        }
+        if(stride[2] > (1<< step_bits)){
+            header_print("ERROR", ": stride_2 out of range");
+        }
+        if(size[1] > (1<< wrap_bits)){
+            header_print("ERROR", ": step_1 out ouf range");
+        }
+        if(stride[1] > (1<< step_bits)){
+            header_print("ERROR", ": stride_1 out of range");
+        }
         // inverse of human's order
         cmd->dim0_size = size[3];
         cmd->dim0_stride = size[3] != 1 ? stride[3] : 1;
         cmd->dim1_size = size[2];
         cmd->dim1_stride = size[2] != 1 ? stride[2] : 1;
         cmd->dim2_size = size[1];
-        cmd->dim2_stride = size[1] != 1 ? stride[1] : 1;
+        cmd->dim2_stride = size[1] != 1 ? stride[1] : 1;    
     }
     cmd->next_bd_id = 0;
     cmd->valid_bd = 1;
+    cmd->cache_flag = cache_flag;
     if (cmd->is_linear){
         cmd->iter_size = 1;
         cmd->iter_stride = 1;
@@ -370,7 +396,8 @@ void npu_sequence::npu_dma_memcpy_nd(
     else{
         cmd->iter_size = size[0];
         if (cmd->iter_size > 1){
-            cmd->iter_stride = stride[0];
+            cmd->iter_size = (stride[0] == 0) ? 1 : size[0];
+            cmd->iter_stride = (stride[0] == 0) ? 1 : stride[0];
         }
         else{
             cmd->iter_stride = 1;
@@ -398,6 +425,7 @@ void npu_sequence::npu_dma_memcpy_nd(
     ddr_cmd->arg_offset *= elem_size;
     ddr_cmd->arg_idx = arg_idx;
 
+    this->cmds.push_back(std::move(ddr_cmd));
     // add issue token
     if (issue_token){
         std::unique_ptr<npu_issue_token_cmd> issue_token_cmd = std::make_unique<npu_issue_token_cmd>();
@@ -405,24 +433,24 @@ void npu_sequence::npu_dma_memcpy_nd(
         issue_token_cmd->col = col;
         issue_token_cmd->channel_direction = channel_direction;
         issue_token_cmd->channel_id = it_channel;
-        issue_token_cmd->controller_packet_id = 15;
+        issue_token_cmd->controller_packet_id = shm_control_packet_id;
         this->cmds.push_back(std::move(issue_token_cmd));
     }
     
-    this->cmds.push_back(std::move(ddr_cmd));
     // queue write
-    std::unique_ptr<npu_write_cmd> queue_cmd = std::make_unique<npu_write_cmd>();
-    queue_cmd->row = row;
-    queue_cmd->col = col;
-    queue_cmd->channel_direction = channel_direction;
-    queue_cmd->could_be_push_queue = true;
-    queue_cmd->channel_id = it_channel;
-    queue_cmd->repeat_count = size[0] - 1;
-    queue_cmd->issue_token = issue_token;
-    queue_cmd->bd_id = bd_id;
-    this->cmds.push_back(std::move(queue_cmd));
+    if (submit_to_queue){
+        std::unique_ptr<npu_write_cmd> queue_cmd = std::make_unique<npu_write_cmd>();
+        queue_cmd->row = row;
+        queue_cmd->col = col;
+        queue_cmd->channel_direction = channel_direction;
+        queue_cmd->could_be_push_queue = true;
+        queue_cmd->channel_id = it_channel;
+        queue_cmd->repeat_count = size[0] - 1;
+        queue_cmd->issue_token = issue_token;
+        queue_cmd->bd_id = bd_id;
+        this->cmds.push_back(std::move(queue_cmd));
+    }
 }
-
 ///@{
 /**
  *  @brief generate a npu wait command  
