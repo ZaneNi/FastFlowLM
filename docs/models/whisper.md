@@ -75,15 +75,15 @@ print(resp.text)
 
 **Example 2**: Open WebUI
 
-- Follow Open WebUI setup guide.
+- Follow Open WebUI setup [guide](https://docs.fastflowlm.com/instructions/server/webui.html).
 - In the bottom-left corner, click User icon, then select Settings.
 - In the bottom panel, open Admin Settings.
 - In the left sidebar, navigate to Audio.
 - Set Speech-to-Text Engine to OpenAI.
 - Enter:
-> API Base URL: `http://host.docker.internal:52625/v1`  
-> API KEY: flm (any value works)  
-> STT Model: whisper-large-v3-turbo (type in the model name; can be different)  
+> API Base URL: `http://localhost:52625/v1` (Open WebUI Desktop) or `http://host.docker.internal:52625/v1` (Open WebUI in Docker)   
+> API KEY: flm (any value works)    
+> STT Model: whisper-large-v3-turbo (type in the model name; can be different)    
 - Save the setting.
 - You're ready to upload audio files! (Choose an LLM to load and use concurrently)
 
