@@ -49,17 +49,17 @@ print(resp.data[0].embedding)
 
 ```
 
-### Example: **Open WebUI**  
+**Example 2**: Open WebUI  
 
-1. Follow [Open WebUI](https://docs.fastflowlm.com/instructions/server/webui.html#-run-open-webui-with-fastflowlm) setup guide.  
+1. Follow **Open WebUI** setup [guide](https://docs.fastflowlm.com/instructions/server/webui.html).  
 2. In the **bottom-left corner**, click **`User`** icon, then select **`Settings`**.  
 3. In the **bottom panel**, open **`Admin Settings`**.  
 4. In the **left sidebar**, navigate to **Documents**.  
 5. Set **Embedding Model Engine** to **OpenAI**.  
 6. Enter:  
--- **API Base URL**: `http://host.docker.internal:52625/v1`  
--- **API KEY**: `flm` (any value works)  
--- **Embedding Model**: `embed-gemma:300m`   
+> API Base URL: `http://localhost:52625/v1` (Open WebUI Desktop) or `http://host.docker.internal:52625/v1` (Open WebUI in Docker)  
+> API KEY: `flm` (any value works)    
+> Embedding Model: `embed-gemma:300m`     
 7. **Save** the setting.   
 8. Follow the [RAG + FastFlowLM example](https://docs.fastflowlm.com/instructions/server/webui.html#️-example-local-private-database-with-rag--fastflowlm) to launch your **Local Private Database with RAG** all powered by FLM.
 

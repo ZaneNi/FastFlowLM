@@ -7,6 +7,8 @@ parent: Local Server (Server Mode)
 # 📑 Table of Contents
 
 - **[🧩 Run Open WebUI with FastFlowLM](#-run-open-webui-with-fastflowlm)**
+  - [ Option 1: Use Open WebUI Desktop](#option-1-use-open-webui-desktop)  
+  - [ Option 2: Use Open WebUI in Docker](#option-2-use-open-webui-in-docker)  
 - **[🧪 More Examples](#-more-examples)**
   - [ Example: Multi Models Comparision Enabled by FLM Queuing](#-example-multi-models-comparision-enabled-by-flm-queuing)  
   - [ Example: Agentic AI Web Search with FastFlowLM](#-example-agentic-ai-web-search-with-fastflowlm)  
@@ -15,6 +17,52 @@ parent: Local Server (Server Mode)
 ---
 
 # 🧩 Run Open WebUI with FastFlowLM
+
+## Option 1: Use Open WebUI Desktop
+
+Set up **Open WebUI Desktop** to talk to a local **FastFlowLM** instance on Windows.
+
+---
+
+### 📥 Step 1: Download Open WebUI Desktop
+1. Go to the [releases page](https://github.com/open-webui/desktop/releases).
+2. Download **`windows-latest-x64.exe`**.
+3. Double-click the installer and complete setup.
+
+---
+
+### 🧑‍💻 Step 2: Create Your Open WebUI Account
+Enter **Name**, **Email**, and **Password** to create a local account.
+
+---
+
+### 🔌 Step 3: Connect Open WebUI to FastFlowLM
+1. In Open WebUI: **user icon → Admin Panel → Settings → Connections**.
+2. **Deactivate** the Ollama API.
+3. Under **Manage OpenAI API Connections**, click **+** and fill in:
+   - **Name:** FastFlowLM
+   - **Base URL:** `http://localhost:52625/v1`
+   - **API Key:** `DUMMY` (any non-empty value)
+4. Click **Save**. If available, choose **Set as default**.
+
+> Tip: In Chat settings, set **Provider** to your new **OpenAI-compatible** connection.
+
+---
+
+### 🚀 Step 4: Serve FastFlowLM with a Model
+Open **PowerShell** and start the server:
+
+```powershell
+flm serve llama3.2:1b
+```
+
+You can now chat in Open WebUI using FastFlowLM.
+
+> Note: Switching models may take time while the new model loads into memory.
+
+---
+
+## Option 2: Use Open WebUI in Docker
 
 This guide walks you through using `docker-compose.yaml` to run Open WebUI connected to a local FastFlowLM instance on Windows.
 
