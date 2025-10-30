@@ -4,7 +4,7 @@
  * \brief Custom ostream for streaming
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.15
+ * \version 0.9.16
  */
 #pragma once
 

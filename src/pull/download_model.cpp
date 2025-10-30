@@ -2,7 +2,7 @@
 /// \brief Download model class
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.15
+/// \version 0.9.16
 /// \note This class for curl download
 #include "download_model.hpp"
 #include <fstream>
@@ -12,6 +12,9 @@
 #include "utils/utils.hpp"
 
 namespace download_utils {
+
+// Global variable to track if progress bar was shown
+static bool g_progress_bar_shown = false;
 
 /// \brief Hide the cursor
 void hide_cursor() {
@@ -74,10 +77,8 @@ int progress_callback(void* clientp, double dltotal, double dlnow, double ultota
                 << percentage << "% (" << mb_now << "MB / " << mb_total << "MB)"
                 << std::flush;
 
+            g_progress_bar_shown = true;
             last_print_time = now;
-            if (dlnow >= dltotal) {
-                std::cout << std::endl;
-            }
         }
     }
     return 0;
@@ -90,6 +91,9 @@ int progress_callback(void* clientp, double dltotal, double dlnow, double ultota
 /// \return true if the file is downloaded, false otherwise
 bool download_file(const std::string& url, const std::string& local_path, 
                    std::function<void(double)> progress_cb) {
+    // Reset progress bar tracking for this download
+    g_progress_bar_shown = false;
+    
     CURL* curl = curl_easy_init();
     if (!curl) {
         std::cerr << "Failed to initialize CURL" << std::endl;
@@ -139,7 +143,10 @@ bool download_file(const std::string& url, const std::string& local_path,
         return false;
     }
 
-    //std::cout << std::endl;
+    // Only add newline if progress bar was shown
+    if (g_progress_bar_shown) {
+        std::cout << std::endl;
+    }
     header_print("FLM", "Download completed: " << local_path);
     return true;
 }

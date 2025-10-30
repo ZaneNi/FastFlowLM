@@ -2,7 +2,7 @@
 /// \brief Tokenizer implementation for text encoding/decoding
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.15
+/// \version 0.9.16
 #include "tokenizer/tokenizer.hpp"
 #include <iostream>
 #include <fstream>

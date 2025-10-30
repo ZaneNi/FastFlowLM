@@ -4,7 +4,7 @@
 *  \brief CLI interactive input implementation using Windows Console API
 *  \author FastFlowLM Team
 *  \date 2025-06-24
-*  \version 0.9.15
+*  \version 0.9.16
 */
 #include "cli_wide.hpp"
 #include <chrono>

@@ -2,7 +2,7 @@
 /// \brief all_models class
 /// \author FastFlowLM Team
 /// \date 2025-09-10
-/// \version 0.9.15
+/// \version 0.9.16
 /// \note This is a header file for the all_models class
 #pragma once
 
@@ -11,6 +11,7 @@
 #include "modeling_llama3.hpp"
 #include "modeling_qwen3.hpp"
 #include "modeling_gpt_oss.hpp"
+#include "modeling_qwen3vl.hpp"
 
 inline std::string complete_simple_tag(std::string model_tag) {
     if (model_tag == "llama3.1")
@@ -33,6 +34,8 @@ inline std::string complete_simple_tag(std::string model_tag) {
         return "medgemma:4b";
     else if (model_tag == "gpt-oss")
         return "gpt-oss:20b";
+    else if (model_tag == "qwen3vl-it")
+        return "qwen3vl-it:4b";
     else
         return model_tag;
 
@@ -77,6 +80,9 @@ inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const s
     static std::unordered_set<std::string> embedgemma_tags = {
         "embed-gemma:300m", "embed-gemma"
     };
+    static std::unordered_set<std::string> qwen3vl_tags = {
+        "qwen3vl-it", "qwen3vl-it:4b"
+    };
 
     std::unique_ptr<AutoModel> auto_chat_engine = nullptr;
     std::string new_model_tag = complete_simple_tag(model_tag);
@@ -98,6 +104,8 @@ inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const s
         auto_chat_engine = std::make_unique<Gemma3>(npu_device_inst);
     else if (gpt_oss_tags.count(model_tag))
         auto_chat_engine = std::make_unique<GPT_OSS>(npu_device_inst);
+    else if (qwen3vl_tags.count(model_tag))
+        auto_chat_engine = std::make_unique<Qwen3VL>(npu_device_inst);
     else if (whisper_tags.count(model_tag)) {
         header_print("Warning", "whisper is not a LLM; Running llama3.2:1b now");
         new_model_tag = "llama3.2:1b";

@@ -2,7 +2,7 @@
 /// \brief automodel class
 /// \author FastFlowLM Team
 /// \date 2025-09-01
-/// \version 0.9.15
+/// \version 0.9.16
 /// \note This is a header file for the auto_model class
 #pragma once
 
@@ -20,6 +20,7 @@
 #include "lm_config.hpp"
 #include "llama/llama_npu.hpp"
 #include "qwen/qwen_npu.hpp"
+#include "qwen3vl/qwen3vl_npu.hpp"
 #include "gemma/gemma_npu.hpp"
 #include "gemma_text/gemma_text_npu.hpp"
 #include "gpt_oss/gpt_oss_npu.hpp"

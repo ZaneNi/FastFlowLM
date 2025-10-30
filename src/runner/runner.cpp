@@ -4,7 +4,7 @@
 *  \brief Runner implementation for interactive model execution
 *  \author FastFlowLM Team
 *  \date 2025-08-05
-*  \version 0.9.15
+*  \version 0.9.16
 */
 #include "runner.hpp"
 #include "harmony_filter.hpp"
@@ -207,6 +207,7 @@ void Runner::run() {
             int last_file_name_idx = 0;
             std::string audio_context = "";
             if (first_token == "/input") {
+                input = "\n";
                 std::string filename;
                 if (input_list[1][0] == '\"'){
                     for (int i = 1; i < input_list.size(); i++) {
@@ -225,7 +226,7 @@ void Runner::run() {
                 }
 
                 header_print("FLM", "Loading file: " << filename);
-
+                std::cout << std::endl;
                 if (filename.find(".jpg") != std::string::npos || filename.find(".png") != std::string::npos || filename.find(".jpeg") != std::string::npos) {
                     uniformed_input.images.push_back(filename);
                     uniformed_input.image_payload_types.push_back(FILE_NAME);
@@ -252,7 +253,6 @@ void Runner::run() {
 
                 }
                 else{
-                    header_print("FLM", "Loading file: " << filename);
                     std::wifstream file(utf8_to_wstring(filename));
                     //std::ifstream file(filename);
                     if (!file.is_open()) {
@@ -265,18 +265,14 @@ void Runner::run() {
                     std::string file_content = utf8conv.to_bytes(file_content_original);
                     file.close();
                     input = file_content + "\n";
-                }
-                std::cout << "Last file name index: " << last_file_name_idx << std::endl;
-                for (int i = 0; i < input_list.size(); i++) {
-                    std::cout << "Input list[" << i << "]: " << input_list[i] << std::endl;
-                }
-                for (int i = last_file_name_idx + 1; i < input_list.size() - 1; i++) {
-                    input += input_list[i] + " ";
+                    std::cout << std::endl;
                 }
                 if (last_file_name_idx < input_list.size() - 1) {
+                    for (int i = last_file_name_idx + 1; i < input_list.size() - 1; i++) {
+                        input += input_list[i] + " ";
+                    }
                     input += input_list[input_list.size() - 1];
                 }
-                std::cout << std::endl;
             }
 
             chat_meta_info_t meta_info;

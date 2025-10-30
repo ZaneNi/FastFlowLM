@@ -1,10 +1,10 @@
-/*!
+﻿/*!
  *  Copyright (c) 2023 by Contributors
  * \file rest_handler.cpp
  * \brief RestHandler class and related declarations
  * \author FastFlowLM Team
  * \date 2025-08-05
- * \version 0.9.15
+ * \version 0.9.16
  */
 #include "rest_handler.hpp"
 #include "wstream_buf.hpp"
@@ -64,8 +64,8 @@ static nlohmann::ordered_json normalize_messages(nlohmann::ordered_json messages
     return normalized;
 }
 
-static nlohmann::ordered_json openai_to_rest(nlohmann::ordered_json messages) {
-    nlohmann::ordered_json rest_format = nlohmann::ordered_json::array();
+static nlohmann::ordered_json normalize_template(nlohmann::ordered_json messages) {
+    nlohmann::ordered_json template_message = nlohmann::ordered_json::array();
 
     for (auto& message : messages) {
         nlohmann::ordered_json new_message;
@@ -106,10 +106,10 @@ static nlohmann::ordered_json openai_to_rest(nlohmann::ordered_json messages) {
             new_message["images"] = merged_images;
         }
 
-        rest_format.push_back(new_message);
+        template_message.push_back(new_message);
     }
 
-    return rest_format;
+    return template_message;
 }
 
 ///@brief RestHandler constructor
@@ -323,8 +323,6 @@ void RestHandler::handle_chat(const json& request,
                              std::shared_ptr<CancellationToken> cancellation_token) {
     try {
         nlohmann::ordered_json messages = request["messages"];
-
-        messages = normalize_messages(messages);
         bool stream = request.value("stream", false);
         std::string model = request.value("model", current_model_tag);
         std::string reasoning_effort = request.value("reasoning_effort", "medium");
@@ -633,10 +631,7 @@ void RestHandler::handle_openai_chat_completion(const json& request,
                                                std::shared_ptr<CancellationToken> cancellation_token) {
     try {
         // Extract OpenAI-style parameters
-        nlohmann::ordered_json messages_openai = request["messages"];
-
-        messages_openai = normalize_messages(messages_openai);
-
+        nlohmann::ordered_json messages = request["messages"];
         std::string model = request.value("model", current_model_tag);
         std::string reasoning_effort = request.value("reasoning_effort", "medium");
         bool stream = request.value("stream", false);
@@ -653,8 +648,8 @@ void RestHandler::handle_openai_chat_completion(const json& request,
         ensure_model_loaded(model);
         auto load_end_time = time_utils::now();
 
-        messages_openai = normalize_messages(messages_openai);
-        nlohmann::ordered_json messages = openai_to_rest(messages_openai);
+        messages = normalize_messages(messages);
+        messages = normalize_template(messages);
 
         auto_chat_engine->set_temperature(temperature);
         auto_chat_engine->set_topp(top_p);
@@ -666,8 +661,6 @@ void RestHandler::handle_openai_chat_completion(const json& request,
         chat_meta_info_t meta_info;
         lm_uniform_input_t uniformed_input;
         meta_info.load_duration = (uint64_t)time_utils::duration_ns(load_start_time, load_end_time).first;
-        // void* payload = pixel_values.size() > 0 ? static_cast<void*>(&pixel_values) : nullptr;
-        void* payload = nullptr;
         header_print("FLM", "Start generating...");
         if (stream){
             // Create a wrapper callback that passes the pre-formatted SSE string directly

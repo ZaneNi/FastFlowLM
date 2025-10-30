@@ -4,7 +4,7 @@
 *  \brief Detect new version
 *  \author FastFlowLM Team
 *  \date 2025-09-24
-*  \version 0.9.15
+*  \version 0.9.16
 */
 
 #include <windows.h>

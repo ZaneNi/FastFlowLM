@@ -4,7 +4,7 @@
 
 AppName=flm
 
-AppVersion=0.9.15
+AppVersion=0.9.16
 
 AppPublisher=FastFlowLM
 
@@ -50,6 +50,7 @@ Source: "gemma_text_npu.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gemma_embedding.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpt_oss_npu.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "qwen_npu.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "qwen3vl_npu.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "lm_head.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dequant.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "whisper_npu.dll"; DestDir: "{app}"; Flags: ignoreversion
@@ -165,7 +166,7 @@ begin
     // FLM_SERVE_PORT doesn't exist, use default port
     Result := '52625';
   end;
-end;
+  end;
 
 procedure InitializeWizard;
 begin
