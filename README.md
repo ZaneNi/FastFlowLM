@@ -99,8 +99,8 @@ No model rewrites, no tuning — it just works.
 ## 📄 License
 
 - All orchestration code and CLI tools are open-source under the [MIT License](./LICENSE_RUNTIME.txt).  
-- NPU-accelerated kernels are **proprietary binaries**: free for for **commercial use if your company’s annual revenue is USD 10 million or less**. Above that threshold, a commercial license is required. See [LICENSE_BINARY.txt](./LICENSE_BINARY.txt) and [TERMS.md](./TERMS.md) for details.  
-- **Free-tier users or products:** Please acknowledge FastFlowLM in your README/project page (or product) as follows:
+- NPU-accelerated kernels are **proprietary binaries**: free for **commercial use if your company’s annual revenue is USD 10 million or less**. Above that threshold, a commercial license is required. See [LICENSE_BINARY.txt](./LICENSE_BINARY.txt) and [TERMS.md](./TERMS.md) for details.  
+- **Free-tier users** Please acknowledge FastFlowLM in your README/project page (or product) as follows:
   ```
   Powered by [FastFlowLM](https://github.com/FastFlowLM/FastFlowLM)
   ```
@@ -118,4 +118,4 @@ For commercial licensing inquiries, email us: info@fastflowlm.com
 - Inspired by the widely adopted [llama.cpp](https://github.com/ggml-org/llama.cpp) and [Ollama](https://github.com/ollama/ollama)
 - Tokenization accelerated with [MLC-ai/tokenizers-cpp](https://github.com/mlc-ai/tokenizers-cpp)
 - Chat formatting via [Google/minja](https://github.com/google/minja)
-- Low-level kernels optimized using the powerful [IRON](https://github.com/Xilinx/mlir-aie/tree/main/programming_guide)+[AIE-MLIR](https://github.com/Xilinx/mlir-aie/tree/main)
+- Low-level kernels optimized using the powerful [IRON](https://github.com/amd/iron)+[AIE-MLIR](https://github.com/Xilinx/mlir-aie/tree/main)
