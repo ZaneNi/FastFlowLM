@@ -2,7 +2,7 @@
 /// \brief llama3 class
 /// \author FastFlowLM Team
 /// \date 2025-09-04
-/// \version 0.9.16
+/// \version 0.9.17
 /// \note This is a source file for the llama3 class
 
 #pragma once

@@ -10,26 +10,23 @@ Open-source components (such as the command-line interface and orchestration scr
 
 Proprietary binary components (such as NPU-accelerated kernels) are NOT open source. These binaries are protected by one or more pending patents and are distributed under separate terms.,
 
-You may use the proprietary binaries only under the following conditions:
-For non-commercial use, free of charge.,
-For commercial use, only if you have obtained a valid commercial license.,
-
-To request a commercial license, email: info@fastflowlm.com
-
-Do not use the proprietary binaries in any commercial product, service, or deployment without a license. Unauthorized commercial use is strictly prohibited and may constitute patent infringement.
+You may use the Binaries for commercial purposes without a separate commercial license until your company’s annual gross revenue exceeds USD 10 million.
+Once your company’s annual revenue exceeds this threshold, you must obtain a commercial license from the Licensor to continue use.
+To request a commercial license, contact: info@fastflowlm.com
 
 If you wish to run your own model with FastFlowLM, we offer optimization services. Please contact us at info@fastflowlm.com for details.
 
 PATENT PENDING
 
-The proprietary components of this software are subject to one or more pending U.S. and international patent applications. Unauthorized use may result in liability if patents are granted.
+The proprietary components of this software are subject to one or more pending U.S. and international patent applications. Unauthorized use may result in liability.
 
 RESTRICTIONS
 
 You may NOT:
-Use the proprietary binaries for any commercial purpose without a license.,
-Modify, reverse-engineer, or redistribute the proprietary binaries.,
-Remove or alter any copyright, trademark, or patent notices.,
+a. Use the Binaries for any commercial purpose unless you meet the conditions in Section 4 and, if required, have obtained a commercial license.
+b. Modify, reverse-engineer, disassemble, or decompile the Binaries.
+c. Redistribute, publish, upload, or otherwise make the Binaries available to any third party, whether for commercial or non-commercial purposes, without prior written permission from the Licensor.
+d. Remove or obscure any copyright, trademark, or patent notices contained in or on the Binaries.
 
 NO WARRANTY
 

@@ -2,7 +2,7 @@
 /// \brief automodel class
 /// \author FastFlowLM Team
 /// \date 2025-09-01
-/// \version 0.9.16
+/// \version 0.9.17
 /// \note This is a source file for the auto_model class
 
 #include "AutoModel/automodel.hpp"
@@ -18,6 +18,7 @@ std::unordered_set<std::string> modelTags = {
         "gemma3:4b",
         "medgemma", "medgemma:4b",
         "gpt-oss", "gpt-oss:20b",
+        "gpt-oss-sg", "gpt-oss-sg:20b",
         "whisper-v3", "whisper-v3:turbo",
         "embed-gemma", "embed-gemma:300m",
         "qwen3vl-it", "qwen3vl-it:4b"

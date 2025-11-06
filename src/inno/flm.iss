@@ -4,7 +4,7 @@
 
 AppName=flm
 
-AppVersion=0.9.16
+AppVersion=0.9.17
 
 AppPublisher=FastFlowLM
 
@@ -113,13 +113,6 @@ Name: "{commondesktop}\flm serve"; \
     Comment: "Launch flm in serve mode"; \
     Tasks: desktopicon
 
-[Registry]
-; Add application directory to system PATH
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; \
-    ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}"
-
-; FLM_MODEL_PATH and FLM_SERVE_PORT will be set to user's choice during installation
-
 [Tasks]
 ; Optional desktop icon task
 
@@ -132,6 +125,85 @@ var
   CustomModelPath: string;
   CustomPort: string;
 
+function DirInPath(Path: string; Dir: string): Boolean;
+var
+  I: Integer;
+  Entry: string;
+begin
+  Result := False;
+  Path := Path + ';'; 
+
+  if (Length(Dir) > 0) and (Dir[Length(Dir)] = '\') then
+    Dir := Copy(Dir, 1, Length(Dir) - 1);
+  Dir := Uppercase(Dir);
+
+  while Path <> '' do
+  begin
+    I := Pos(';', Path);
+    if I > 0 then
+    begin
+      Entry := Copy(Path, 1, I - 1);
+      Delete(Path, 1, I);
+      Entry := Trim(Entry);
+      if Entry <> '' then
+      begin
+        if (Length(Entry) > 0) and (Entry[Length(Entry)] = '\') then
+          Entry := Copy(Entry, 1, Length(Entry) - 1);
+        
+        if Uppercase(Entry) = Dir then
+        begin
+          Result := True;
+          Exit;
+        end;
+      end;
+    end
+    else
+      Path := '';
+  end;
+end;
+  
+procedure RemoveDirFromPath(var Path: string; Dir: string);
+var
+  NewPath: string;
+  I: Integer;
+  Entry: string;
+  CompareEntry: string; 
+begin
+  NewPath := '';
+  Path := Path + ';'; 
+
+  if (Length(Dir) > 0) and (Dir[Length(Dir)] = '\') then
+    Dir := Copy(Dir, 1, Length(Dir) - 1);
+  Dir := Uppercase(Dir);
+
+  while Path <> '' do
+  begin
+    I := Pos(';', Path);
+    if I > 0 then
+    begin
+      Entry := Copy(Path, 1, I - 1);
+      Delete(Path, 1, I);
+      Entry := Trim(Entry);
+      if Entry <> '' then
+      begin
+        CompareEntry := Entry;
+        if (Length(CompareEntry) > 0) and (CompareEntry[Length(CompareEntry)] = '\') then
+          CompareEntry := Copy(CompareEntry, 1, Length(CompareEntry) - 1);
+        
+        if Uppercase(CompareEntry) <> Dir then
+        begin
+          if NewPath <> '' then
+            NewPath := NewPath + ';';
+          NewPath := NewPath + Entry;
+        end;
+      end;
+    end
+    else
+      Path := '';
+  end;
+  Path := NewPath;
+end;  
+  
 function GetExistingModelPath: string;
 var
   ExistingPath: string;
@@ -200,10 +272,33 @@ begin
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
+var
+  OldPath: string;
+  AppPath: string;
 begin
   if CurStep = ssPostInstall then
   begin
-    
+    if not RegQueryStringValue(HKEY_LOCAL_MACHINE,
+      'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+      'Path', OldPath)
+    then
+      OldPath := '';
+
+    AppPath := ExpandConstant('{app}');
+
+    if not DirInPath(OldPath, AppPath) then
+    begin
+      if OldPath = '' then
+        OldPath := AppPath
+      else if OldPath[Length(OldPath)] = ';' then
+        OldPath := OldPath + AppPath
+      else
+        OldPath := OldPath + ';' + AppPath;
+      
+      RegWriteStringValue(HKEY_LOCAL_MACHINE,
+        'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+        'Path', OldPath);
+    end;
     // Always set the FLM_MODEL_PATH environment variable to user's choice
     RegWriteStringValue(HKEY_LOCAL_MACHINE,
       'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
@@ -216,4 +311,40 @@ begin
   end;
 end;
 
+// --- Uninstall ---
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  OldPath: string;
+  AppPath: string;
+begin
+  if CurUninstallStep = usPostUninstall then
+  begin
+    // --- remove from PATH  ---
+    if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+      'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+      'Path', OldPath)
+    then
+    begin
+      AppPath := ExpandConstant('{app}');
+      if DirInPath(OldPath, AppPath) then
+      begin
+        RemoveDirFromPath(OldPath, AppPath);
+        
+        RegWriteStringValue(HKEY_LOCAL_MACHINE,
+          'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+          'Path', OldPath);
+      end;
+    end;
+
+    // --- Delete BRT_MODEL_PATH ---
+    RegDeleteValue(HKEY_LOCAL_MACHINE,
+      'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+      'FLM_MODEL_PATH');
+      
+    // --- Delete BRT_SERVE_PORT ---
+    RegDeleteValue(HKEY_LOCAL_MACHINE,
+      'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+      'FLM_SERVE_PORT');
+  end;
+end;
 

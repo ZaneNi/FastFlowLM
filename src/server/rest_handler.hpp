@@ -4,7 +4,7 @@
  * \brief RestHandler class and related declarations
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.16
+ * \version 0.9.17
  */
 #pragma once
 
@@ -105,6 +105,7 @@ private:
     void ensure_model_loaded(const std::string& model_tag);
     void ensure_asr_model_loaded(const std::string& model_tag);
     void ensure_embed_model_loaded(const std::string& model_tag);
+    void configure_chat_engine_parameters(const json& options, const json& request);
 
     std::unique_ptr<AutoModel> auto_chat_engine;
     std::unique_ptr<Whisper> whisper_engine;

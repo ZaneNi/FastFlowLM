@@ -4,7 +4,7 @@
  * \brief Custom ostream for streaming
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.16
+ * \version 0.9.17
  */
 #pragma once
 
@@ -147,7 +147,7 @@ private:
 
         harmony_part_t part = harmony_filter_inst->identify_part(content);
 
-        if (model_name == "gpt-oss:20b" || model_name == "gpt-oss") {
+        if (model_name == "gpt-oss:20b" || model_name == "gpt-oss" || model_name == "gpt-oss-sg:20b" || model_name == "gpt-oss-sg") {
             json_content = (part == harmony_part_t::response) ? content : "";
             json_reasoning = (part == harmony_part_t::reasoning) ? content : "";
         }

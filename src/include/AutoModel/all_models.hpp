@@ -2,7 +2,7 @@
 /// \brief all_models class
 /// \author FastFlowLM Team
 /// \date 2025-09-10
-/// \version 0.9.16
+/// \version 0.9.17
 /// \note This is a header file for the all_models class
 #pragma once
 
@@ -34,6 +34,8 @@ inline std::string complete_simple_tag(std::string model_tag) {
         return "medgemma:4b";
     else if (model_tag == "gpt-oss")
         return "gpt-oss:20b";
+    else if (model_tag == "gpt-oss-sg")
+        return "gpt-oss-sg:20b";
     else if (model_tag == "qwen3vl-it")
         return "qwen3vl-it:4b";
     else
@@ -72,7 +74,8 @@ inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const s
         "medgemma", "medgemma:4b"
     };
     static std::unordered_set<std::string> gpt_oss_tags = {
-        "gpt-oss:20b", "gpt-oss"
+        "gpt-oss:20b", "gpt-oss",
+        "gpt-oss-sg:20b", "gpt-oss-sg"
     };
     static std::unordered_set<std::string> whisper_tags = {
         "whisper-v3:turbo", "whisper-v3", "whisper"

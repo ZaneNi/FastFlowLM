@@ -4,7 +4,7 @@
  * \brief RestHandler class and related declarations
  * \author FastFlowLM Team
  * \date 2025-08-05
- * \version 0.9.16
+ * \version 0.9.17
  */
 #include "rest_handler.hpp"
 #include "wstream_buf.hpp"
@@ -190,6 +190,40 @@ void RestHandler::ensure_embed_model_loaded(const std::string& model_tag) {
     this->auto_embedding_engine->load_model(embedding_model_path, embedding_model_info, this->preemption);
 }
 
+///@brief Configure chat engine parameters from options and request
+///@param options the options JSON object
+///@param request the request JSON object
+void RestHandler::configure_chat_engine_parameters(const json& options, const json& request) {
+    if (options.contains("temperature")) {
+        float temperature = options["temperature"];
+        auto_chat_engine->set_temperature(temperature);
+    }
+    if (options.contains("top_p")) {
+        float top_p = options["top_p"];
+        auto_chat_engine->set_topp(top_p);
+    }
+    if (options.contains("top_k")) {
+        int top_k = options["top_k"];
+        auto_chat_engine->set_topk(top_k);
+    }
+    if (options.contains("frequency_penalty")) {
+        float frequency_penalty = options["frequency_penalty"];
+        auto_chat_engine->set_frequency_penalty(frequency_penalty);
+    }
+    if (options.contains("repetition_penalty")) {
+        float repetition_penalty = options["repetition_penalty"];
+        auto_chat_engine->set_repetition_penalty(repetition_penalty);
+    }
+    if (request.contains("think")) {
+        bool enable_thinking = request["think"];
+        auto_chat_engine->configure_parameter("enable_think", enable_thinking);
+    }
+    if (request.contains("reasoning_effort")) {
+        std::string reasoning_effort = request["reasoning_effort"];
+        auto_chat_engine->configure_parameter("reasoning_effort", reasoning_effort);
+    }
+}
+
 ///@brief Handle the show request
 ///@param request the request
 ///@param send_response the send response
@@ -240,19 +274,12 @@ void RestHandler::handle_generate(const json& request,
         bool stream = request.value("stream", true);
         std::string model = request.value("model", current_model_tag);
         json options = request.value("options", json::object());
-        int temperature = options.value("temperature", 0.6);
-        int top_p = options.value("top_p", 0.9);
-        int top_k = options.value("top_k", 5);
-        float frequency_penalty = options.value("frequency_penalty", 1.1);
-        float repetition_penalty = options.value("repeat_penalty", 1.1);
+       
         int length_limit = request.value("max_tokens", 4096);
-        bool enable_thinking = request.value("think", false);
         auto load_start_time = time_utils::now();
         // TODO: Use Another Check Function avoid loading again
         ensure_model_loaded(model);
         auto load_end_time = time_utils::now();
-      
-        auto_chat_engine->configure_parameter("enable_think", enable_thinking);
       
         chat_meta_info_t meta_info;
         lm_uniform_input_t uniformed_input;
@@ -325,28 +352,16 @@ void RestHandler::handle_chat(const json& request,
         nlohmann::ordered_json messages = request["messages"];
         bool stream = request.value("stream", false);
         std::string model = request.value("model", current_model_tag);
-        std::string reasoning_effort = request.value("reasoning_effort", "medium");
         json options = request.value("options", json::object());
-        float temperature = options.value("temperature", 0.6);
-        float top_p = options.value("top_p", 0.9);
-        int top_k = options.value("top_k", 5);
-        float frequency_penalty = options.value("frequency_penalty", 1.1);
-        float repetition_penalty = options.value("repeat_penalty", 1.1);
         int length_limit = options.value("num_predict", 4096);
-        bool enable_thinking = request.value("think", false);
 
         auto load_start_time = time_utils::now();
         ensure_model_loaded(model);
         auto load_end_time = time_utils::now();
        
-        auto_chat_engine->set_temperature(temperature);
-        auto_chat_engine->set_topp(top_p);
-        auto_chat_engine->set_topk(top_k);
-        auto_chat_engine->set_frequency_penalty(frequency_penalty);
-        auto_chat_engine->configure_parameter("enable_think", enable_thinking);
-        auto_chat_engine->configure_parameter("reasoning_effort", reasoning_effort);
+        configure_chat_engine_parameters(options, request);
 
-        messages = normalize_messages(messages);
+        // messages = normalize_messages(messages);
         
         chat_meta_info_t meta_info;
         lm_uniform_input_t uniformed_input;
@@ -636,13 +651,8 @@ void RestHandler::handle_openai_chat_completion(const json& request,
         std::string reasoning_effort = request.value("reasoning_effort", "medium");
         bool stream = request.value("stream", false);
         json options = request.value("options", json::object());
-        float temperature = request.value("temperature", 0.6);
-        float top_p = request.value("top_p", 0.9);
-        int top_k = request.value("top_k", 5);
-        float frequency_penalty = request.value("frequency_penalty", 1.1);
-        float repetition_penalty = request.value("repeat_penalty", 1.1);
+      
         int length_limit = request.value("max_tokens", 4096);
-        bool enable_thinking = request.value("think", false);
 
         auto load_start_time = time_utils::now();
         ensure_model_loaded(model);
@@ -650,13 +660,8 @@ void RestHandler::handle_openai_chat_completion(const json& request,
 
         messages = normalize_messages(messages);
         messages = normalize_template(messages);
-
-        auto_chat_engine->set_temperature(temperature);
-        auto_chat_engine->set_topp(top_p);
-        auto_chat_engine->set_topk(top_k);
-        auto_chat_engine->set_frequency_penalty(frequency_penalty);
-        auto_chat_engine->configure_parameter("enable_think", enable_thinking);
-        auto_chat_engine->configure_parameter("reasoning_effort", reasoning_effort);
+        
+        configure_chat_engine_parameters(options, request);
 
         chat_meta_info_t meta_info;
         lm_uniform_input_t uniformed_input;
@@ -707,20 +712,25 @@ void RestHandler::handle_openai_chat_completion(const json& request,
                     {"prompt_tokens", meta_info.prompt_tokens},
                     {"completion_tokens", meta_info.generated_tokens},
                     {"total_tokens", meta_info.prompt_tokens + meta_info.generated_tokens},
-                    {"prompt_tokens_details", json::array({
-                        {
-                            {"cached_tokens", 0},
-                            {"audio_tokens", 0}
-                        }
-                    })},
-                    {"completion_tokens_details", json::array({
-                        {
-                            {"reasoning_tokens", 0},
-                            {"audio_tokens", 0},
-                            {"accepted_prediction_tokens", 0},
-                            {"rejected_prediction_tokens", 0}
-                        }
-                    })}
+                    {"load_duration", static_cast<double>(meta_info.load_duration) / 1'000'000'000},
+                    {"prefill_duration_ttft", static_cast<double>(meta_info.prefill_duration) / 1'000'000'000},
+                    {"decoding_duration", static_cast<double>(meta_info.decoding_duration) / 1'000'000'000},
+                    {"prefill_speed_tps", static_cast<double>(meta_info.prompt_tokens) / static_cast<double>(meta_info.prefill_duration) * 1'000'000'000},
+                    {"decoding_speed_tps", static_cast<double>(meta_info.generated_tokens) / static_cast<double>(meta_info.decoding_duration) * 1'000'000'000},
+                    //{"prompt_tokens_details", json::array({
+                    //    {
+                    //        {"cached_tokens", 0},
+                    //        {"audio_tokens", 0}
+                    //    }
+                    //})},
+                    //{"completion_tokens_details", json::array({
+                    //    {
+                    //        {"reasoning_tokens", 0},
+                    //        {"audio_tokens", 0},
+                    //        {"accepted_prediction_tokens", 0},
+                    //        {"rejected_prediction_tokens", 0}
+                    //    }
+                    //})}
                 }},
                 {"service_tier", "default"}
             };
@@ -815,21 +825,12 @@ void RestHandler::handle_openai_completion(const json& request,
         std::string reasoning_effort = request.value("reasoning_effort", "medium");
         bool stream = request.value("stream", false);
         json options = request.value("options", json::object());
-        float temperature = request.value("temperature", 0.6);
-        float top_p = request.value("top_p", 0.9);
-        int top_k = request.value("top_k", 5);
-        float frequency_penalty = request.value("frequency_penalty", 1.1);
+       
         int length_limit = request.value("max_tokens", 4096);
-        bool enable_thinking = request.value("think", false);
 
         ensure_model_loaded(model);
 
-        auto_chat_engine->configure_parameter("enable_think", enable_thinking);
-        auto_chat_engine->configure_parameter("reasoning_effort", reasoning_effort);
-        auto_chat_engine->set_temperature(temperature);
-        auto_chat_engine->set_topp(top_p);
-        auto_chat_engine->set_topk(top_k);
-        auto_chat_engine->set_frequency_penalty(frequency_penalty);
+        configure_chat_engine_parameters(options, request);
 
         chat_meta_info_t meta_info;
         lm_uniform_input_t uniformed_input;

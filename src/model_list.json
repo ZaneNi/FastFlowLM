@@ -7,7 +7,7 @@
                 "url": "https://huggingface.co/FastFlowLM/Qwen3-VL-Instruction-4B-NPU2",
                 "modified_at": "2025-05-30T00:00:00Z",
                 "size": 4000000000,
-                "flm_min_version": "0.9.15",
+                "flm_min_version": "0.9.17",
                 "files": [
                     "attn.xclbin",
                     "config.json",
@@ -522,7 +522,38 @@
                 "url": "https://huggingface.co/FastFlowLM/GPT-OSS-20B-NPU2",
                 "modified_at": "2025-05-30T00:00:00Z",
                 "size": 20000000000,
-                "flm_min_version": "0.9.13",
+                "flm_min_version": "0.9.17",
+                "files":[
+                    "attn.xclbin",
+                    "config.json",
+                    "dequant_mxfp4.xclbin",
+                    "dequant_q4_1.xclbin",
+                    "expert.xclbin",
+                    "layer.xclbin",
+                    "lm_head.xclbin",
+                    "mm.xclbin",
+                    "model.q4nx",
+                    "tokenizer.json",
+                    "tokenizer_config.json"
+                ],
+                "default_context_length": 8192,
+                "details": {
+                    "format": "NPU2",
+                    "family": "gpt-oss",
+                    "think": true,
+                    "think_toggleable": false,
+                    "parameter_size": "4B",
+                    "quantization_level": "Q4_1"
+                }
+            }
+        },
+        "gpt-oss-sg": {
+            "20b": {
+                "name": "GPT-OSS-SG-20B-NPU2",
+                "url": "https://huggingface.co/FastFlowLM/GPT-OSS-SG-20B-NPU2",
+                "modified_at": "2025-05-30T00:00:00Z",
+                "size": 20000000000,
+                "flm_min_version": "0.9.17",
                 "files":[
                     "attn.xclbin",
                     "config.json",
