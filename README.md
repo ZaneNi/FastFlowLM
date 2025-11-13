@@ -36,8 +36,12 @@ A packaged FLM Windows installer is available here: [**flm-setup.exe**](https://
 
 📺 [**Watch the quick start video**](https://www.youtube.com/watch?v=mYOfDNkyBII)
 
-> ⚠️ Ensure NPU driver verison is **>= 32.0.203.311** (check via Task Manager→Performance→NPU or Device Manager) — [Driver Download](https://www.amd.com/en/support).  
-<!-- > ⚙️ **Tip:** Upgrade to the new NPU Driver **32.0.203.304** for over 5–10% speed boost across all models and context lengths. [Download and Install](https://ryzenai.docs.amd.com/en/latest/inst.html#install-npu-drivers) *(AMD account required)*   -->
+> [!IMPORTANT]  
+> ⚠️ Ensure NPU driver verison is **>= 32.0.203.311** (check via Task Manager→Performance→NPU or Device Manager).  
+> ⚙️ **Tip:** AMD does not currently provide public download for their NPU drivers, to install/update the NPU driver:
+>   * **RECOMMENDED**: Try running **Windows Update**.
+>   * [Official AMD Install Doc](https://ryzenai.docs.amd.com/en/latest/inst.html#install-npu-drivers) *(AMD account required)*.
+>   * [Unofficial forum downloads](https://www.elevenforum.com/t/drivers-amd-npu-ryzen-8xxx-9xxx-apu.24220/) **(CAUTION, we no do not hold responsible for what you download here)**.
 
 After installation, open **PowerShell** (`Win + X → I`). To run a model in terminal (**CLI Mode**):
 ```powershell
