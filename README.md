@@ -38,8 +38,8 @@ A packaged FLM Windows installer is available here: [**flm-setup.exe**](https://
 
 > [!IMPORTANT]  
 > ⚠️ Ensure NPU driver verison is **>= 32.0.203.311** (check via Task Manager→Performance→NPU or Device Manager).  
-> ⚙️ **Tip:** AMD does not currently provide public download for their NPU drivers, to install/update the NPU driver:
->   * **RECOMMENDED**: Try running **Windows Update**.
+> ⚙️ **Tip:**
+>   * **RECOMMENDED**: Try running **Windows Update** or **[Driver Download](https://www.amd.com/en/support)**.
 >   * [Official AMD Install Doc](https://ryzenai.docs.amd.com/en/latest/inst.html#install-npu-drivers) *(AMD account required)*.
 >   * [Unofficial forum downloads](https://www.elevenforum.com/t/drivers-amd-npu-ryzen-8xxx-9xxx-apu.24220/) **(CAUTION, we no do not hold responsible for what you download here)**.
 
