@@ -6,24 +6,23 @@ nav_order: 1
 
 ## ⚡ Performance and Efficiency Benchmarks
 
-<!-- This section reports the performance and power usage of LLaMA 3.x on NPU (FastFlowLM, or FLM), NPU (Ryzen™ AI Software, or RAI), iGPU (LM Studio), and CPU (Ollama). -->
 This section reports the performance of LLaMA 3.x on NPU with FastFlowLM (FLM).
 
 > **Note:** 
-- Results are based on FastFlowLM v0.9.8.  
+- Results are based on FastFlowLM v0.9.19.  
 - Under FLM's default NPU power mode (Performance)   
 - Test system spec: AMD Ryzen™ AI 7 350 (Krakan Point) with 32 GB DRAM.   
 - Newer versions may deliver improved performance.   
 
 ---
 
-### 🚀 Decoding Speed (TPS, or Tokens per Second, @ different context lengths)
+### 🚀 Decoding Speed (TPS, or Tokens per Second, starting @ different context lengths)
 
 | **Model**        | **Hardware** | **1k** | **2k** | **4k** | **8k** | **16k** | **32k** | **64k** | **128k** | **Model**        |
 |------------------|--------------|-------:|-------:|-------:|-------:|--------:|--------:|--------:|---------:|------------------|
-| **LLaMA 3.2 1B** | NPU (FLM)    | 41.5   | 40.6   | 38.1   | 33.2   | 25.6    | 18.6    | 12.2    | 8.9      | **LLaMA 3.2 1B** |
-| **LLaMA 3.2 3B** | NPU (FLM)    | 18.3   | 17.8   | 15.9   | 13.6   | 10.5    | 7.3     | 6.3     | OOM      | **LLaMA 3.2 3B** |
-| **LLaMA 3.1 8B** | NPU (FLM)    | 9.1    | 9.0    | 8.3    | 7.5    | 6.2     | 4.6     | OOM     | OOM      | **LLaMA 3.1 8B** |
+| **LLaMA 3.2 1B** | NPU (FLM)    |43.9	   | 42.2   |	40.0 |	34.5  |	27.8    |	20.0  |	12.8    |	9.4    | **LLaMA 3.2 1B** |
+| **LLaMA 3.2 3B** | NPU (FLM)    | 19.8   | 18.8   |	17.4 |	14.8  |	11.8    |	8.3   |	6.3     | OOM      | **LLaMA 3.2 3B** |
+| **LLaMA 3.1 8B** | NPU (FLM)    | 9.4    |	9.2 |	8.7  |	8.0   |	6.9     |	5.3   | OOM     | OOM      | **LLaMA 3.1 8B** |
 
 <!-- | **Model**        | **Hardware** | **1k** | **2k** | **4k** | **8k** | **16k** | **32k** | **64k** | **128k** | **Hardware** | **Model**        |
 |------------------|--------------|-------:|-------:|-------:|-------:|--------:|--------:|--------:|---------:|--------------|------------------|
@@ -48,7 +47,8 @@ This section reports the performance of LLaMA 3.x on NPU with FastFlowLM (FLM).
 <!-- > **Note:** 
 - The official release of Ryzen™ AI Software limits context length to 2,048 tokens, thus "*NA*" is used in the table (NPU-only mode). 
 - The hybrid mode of Ryzen™ AI Software uses iGPU for decoding. Its performance is simliar to iGPU (LM Studio). Also, it limits context length to 2,048, thus, we did not include hybrid mode for comparison.  -->
-> OOM: Out Of Memory  
+> OOM: Out Of Memory
+> Only <50% system DRAM can be accessed by NPU  
 > On systems with more than 32 GB DRAM, longer context lengths are supported. FLM supports the full context length available for each model.  
 
 ---
@@ -64,10 +64,10 @@ This section reports the performance of LLaMA 3.x on NPU with FastFlowLM (FLM).
 
 --- -->
 
-### 🚀 Prefill Speed (TTFT, or Time to First Token in **Seconds**, with different prompt lengths)
+### 🚀 Prefill Speed (TPS, or Tokens per Second, with different prompt lengths)
 
 | **Model**        | **Hardware**       | **1k** | **2k** | **4k** | **8k** | **16k** | **32k** |**Model**        |
 |------------------|--------------------|--------:|--------:|--------:|--------:|---------:|---------:|---------|
-| **LLaMA 3.2 1B** | NPU (FLM)    | 0.76|	1.16|	2.41|	5.76|	16.93|	57.02|**LLaMA 3.2 1B** |
-| **LLaMA 3.2 3B**  | NPU (FLM)    | 1.81|	2.64|	5.56|	14.05|	43.88|	152.91|**LLaMA 3.2 3B**  |
-| **LLaMA 3.1 8B**   | NPU (FLM)    | 3.04|	4.53|	9.32|	21.79|	61.46|	195.65|**LLaMA 3.1 8B**   |
+| **LLaMA 3.2 1B** | NPU (FLM)    |1442	|1766|	1750|	1473|	967|	577|**LLaMA 3.2 1B** |
+| **LLaMA 3.2 3B**  | NPU (FLM)    | 678|	797|	737|	583|	373|	214|**LLaMA 3.2 3B**  |
+| **LLaMA 3.1 8B**   | NPU (FLM)    | 384|	447|	426|	376|	267|	167|**LLaMA 3.1 8B**   |
