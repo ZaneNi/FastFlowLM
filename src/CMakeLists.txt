@@ -88,6 +88,7 @@ target_link_libraries(flm PUBLIC
     whisper_npu
     qwen3vl_npu
     gemma_embedding
+    lfm2_npu
     dequant
     gemm
     lm_head

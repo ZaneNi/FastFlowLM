@@ -57,15 +57,17 @@ class aiebu_assembler
      * 2. type as blob_instr_transaction, buffer1 as instruction buffer
      *    and buffer2 as empty and and pm_ctrlpkt as map of <pm_ctrlpkt_ID, pm_ctrlpkt_buf>
      *    : in this case it will package buffer in text section and ctrlpkt_pm_N section of elf respectively.
-     * 3. type as asm_aie2ps, buffer1 as asm buffer and buffer2
+     * 3. type as asm_aie2ps/asm_aie4, buffer1 as asm buffer and buffer2
      *    as empty: in this case it will assemble the asm code and package in elf.
+     *    This api can do fileops for include asm/ctrlpkt.
      *
      * @type           buffer type
      * @instr_buf      first buffer
      * @constrol_buf   second buffer
      * @patch_json     external_buffer_id json
      * @libs           libs to include in elf
-     * @libpaths       paths to search for libs
+     * @libpaths       paths to search for libs, paths to search for included asm, ctrlpkt.
+                       only paths provided in this, are used for searching.
      * @ctrlpkt        map of pm id and pm control packet buffer
      */
      aiebu_assembler(buffer_type type,
@@ -79,12 +81,14 @@ class aiebu_assembler
     /*
      * Constructor takes buffer type, buffer,
      * and a vector of symbols with their patching information as argument.
+     * This api can do fileops for include asm/ctrlpkt.
      * its throws aiebu::error object.
      *
      * @type           buffer type
      * @instr_buf      first buffer
      * @libs           libs to include in elf
-     * @libpaths       paths to search for libs
+     * @libpaths       paths to search for libs, paths to search for included asm, ctrlpkt.
+                       only paths provided in this, are used for searching.
      * @patch_json     external_buffer_id json
      */
     aiebu_assembler(buffer_type type,

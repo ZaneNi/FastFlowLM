@@ -2,7 +2,7 @@
 /// \brief deepseek class
 /// \author FastFlowLM Team
 /// \date 2025-09-01
-/// \version 0.9.17
+/// \version 0.9.20
 /// \note This is a source file for the deepseek class
 
 
@@ -29,7 +29,7 @@ void Qwen3VL::load_model(std::string model_path, json model_info, int default_co
 
     sampler_config config;
     config.rep_penalty = 1.1;
-    config.temperature = 0.6;
+    config.temperature = 0.8;
     config.top_p = 0.95;
     config.top_k = 10;
     config.rep_penalty_window = 1024;
@@ -189,4 +189,22 @@ std::string Qwen3VL::generate_with_prompt(chat_meta_info_t& meta_info, lm_unifor
         return "";
     }
     return this->_shared_generate(meta_info, length_limit, os);
+}
+
+/************              Qwen3VL_Thinking            **************/
+
+std::string Qwen3VL_Thinking::generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os) {
+    if (!this->insert(meta_info, input)) {
+        return "";
+    }
+    return this->generate(meta_info, length_limit, os);
+}
+
+
+std::string Qwen3VL_Thinking::generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os) {
+    std::string result;
+    os << "<think>\n\n";
+    result = this->_shared_generate(meta_info, length_limit, os);
+    result = "<think>\n\n" + result;
+    return result;
 }

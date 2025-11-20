@@ -2,7 +2,7 @@
 /// \brief tokenizer class
 /// \author FastFlowLM Team
 /// \date 2025-08-05
-/// \version 0.9.17
+/// \version 0.9.10
 /// \note This class is used to tokenize the text.
 #pragma once
 
@@ -64,11 +64,11 @@ public:
     /// \param answer_token the answer token
     /// \return the decoded text
     std::string run_time_decoder(int answer_token);
+    bool is_doubled_encoded;
 
 private:
     std::unique_ptr<tokenizers::Tokenizer> tokenizer;
     std::unordered_map<uint32_t, uint8_t> inv_map;
-    bool is_doubled_encoded;
 
     /// \brief Convert the cp1252 to utf8
     /// \param input the input string

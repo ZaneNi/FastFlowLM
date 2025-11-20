@@ -4,7 +4,7 @@
 *  \brief Runner implementation for interactive model execution
 *  \author FastFlowLM Team
 *  \date 2025-08-05
-*  \version 0.9.17
+* \version 0.9.20
 */
 #include "runner.hpp"
 #include "harmony_filter.hpp"
@@ -203,7 +203,6 @@ void Runner::run() {
             // This is a regular message, not a command
             // std::cout << std::endl;  // Add newline before AI response
             lm_uniform_input_t uniformed_input;
-            this->auto_chat_engine->start_ttft_timer();
             int last_file_name_idx = 0;
             std::string audio_context = "";
             if (first_token == "/input") {
@@ -279,6 +278,8 @@ void Runner::run() {
             uniformed_input.prompt = input;
             
             this->auto_chat_engine->start_total_timer();
+            
+            this->auto_chat_engine->start_ttft_timer();
             bool success = this->auto_chat_engine->insert(meta_info, uniformed_input);
             if (!success){
                 header_print("WARNING", "Max length reached, stopping generation...");

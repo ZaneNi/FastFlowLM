@@ -4,10 +4,10 @@
         "qwen3vl-it": {
             "4b": {
                 "name": "Qwen3-VL-4B-Instruct-NPU2",
-                "url": "https://huggingface.co/FastFlowLM/Qwen3-VL-Instruction-4B-NPU2",
+                "url": "https://huggingface.co/FastFlowLM/Qwen3-VL-4B-Instruct-NPU2",
                 "modified_at": "2025-05-30T00:00:00Z",
                 "size": 4000000000,
-                "flm_min_version": "0.9.17",
+                "flm_min_version": "0.9.19",
                 "files": [
                     "attn.xclbin",
                     "config.json",
@@ -31,6 +31,37 @@
                     "parameter_size": "4B",
                     "quantization_level": "Q4_1"
                 }
+            }
+        },
+        "lfm2": {
+            "1.2b": {
+                "name": "LFM2-1.2B-NPU2",
+                "url": "https://huggingface.co/FastFlowLM/LFM2-1.2B-NPU2",
+                "modified_at": "2025-11-03T00:00:00Z",
+                "size": 1200000000,
+                "default_context_length": 32768,
+                "details": {
+                    "format": "NPU2",
+                    "family": "lfm2",
+                    "think": false,
+                    "think_toggleable": false,
+                    "parameter_size": "1.2B",
+                    "quantization_level": "Q4_1"
+                },
+                "flm_min_version": "0.9.18",
+                "vlm": false,
+                "files": [
+                    "attn.xclbin",
+                    "config.json",
+                    "conv.xclbin",
+                    "dequant.xclbin",
+                    "layer.xclbin",
+                    "lm_head.xclbin",
+                    "mm.xclbin",
+                    "model.q4nx",
+                    "tokenizer.json",
+                    "tokenizer_config.json"
+                ]
             }
         },
         "embed-gemma": {
@@ -91,11 +122,11 @@
  	    "gemma3": {
             "270m": {
                 "name": "Gemma3-270M-NPU2",
-                "url": "https://huggingface.co/FastFlowLM/Gemma3-270M-NPU2",
+                "url": "https://huggingface.co/FastFlowLM/Gemma3-270M-NPU2/resolve/v0.9.20-faster-q4-1",
                 "modified_at": "2025-05-30T00:00:00Z",
                 "size": 270000000,
                 "default_context_length": 32768,
-		        "flm_min_version": "0.9.4",
+		        "flm_min_version": "0.9.20",
                 "files":[
                     "attn.xclbin",
                     "config.json",
@@ -119,11 +150,11 @@
 
             "1b": {
                 "name": "Gemma3-1B-NPU2",
-                "url": "https://huggingface.co/FastFlowLM/Gemma3-1B-NPU2",
+                "url": "https://huggingface.co/FastFlowLM/Gemma3-1B-NPU2/resolve/v0.9.20-faster-q4-1",
                 "modified_at": "2025-05-30T00:00:00Z",
                 "size": 1000000000,
                 "default_context_length": 32768,
-		        "flm_min_version": "0.9.4",
+		        "flm_min_version": "0.9.20",
                 "files":[
                     "attn.xclbin",
                     "config.json",
@@ -146,11 +177,11 @@
             },
             "4b": {
                 "name": "Gemma3-4B-NPU2",
-                "url": "https://huggingface.co/FastFlowLM/Gemma3-4B-NPU2",
+                "url": "https://huggingface.co/FastFlowLM/Gemma3-4B-NPU2/resolve/v0.9.20-faster-q4-1",
                 "modified_at": "2025-05-30T00:00:00Z",
                 "size": 4000000000,
                 "default_context_length": 65536,
-		        "flm_min_version": "0.9.11",
+		        "flm_min_version": "0.9.20",
                 "vlm": true,
                 "files":[
                     "attn.xclbin",
@@ -179,12 +210,12 @@
         "medgemma":{
             "4b": {
                 "name": "Medgemma-4B-NPU2",
-                "url": "https://huggingface.co/FastFlowLM/medgemma-4b-it-NPU2",
+                "url": "https://huggingface.co/FastFlowLM/medgemma-4b-it-NPU2/resolve/v0.9.20-faster-q4-1",
                 "modified_at": "2025-05-30T00:00:00Z",
                 "size": 4000000000,
                 "default_context_length": 65536,
                 "vlm": true,
-		        "flm_min_version": "0.9.11",
+		        "flm_min_version": "0.9.20",
                 "files":[
                     "attn.xclbin",
                     "config.json",
@@ -519,19 +550,18 @@
         "gpt-oss": {
             "20b": {
                 "name": "GPT-OSS-20B-NPU2",
-                "url": "https://huggingface.co/FastFlowLM/GPT-OSS-20B-NPU2",
+                "url": "https://huggingface.co/FastFlowLM/GPT-OSS-20B-NPU2/resolve/v0.9.20-merge-lm-head",
                 "modified_at": "2025-05-30T00:00:00Z",
                 "size": 20000000000,
-                "flm_min_version": "0.9.17",
+                "flm_min_version": "0.9.20",
                 "files":[
                     "attn.xclbin",
                     "config.json",
-                    "dequant_mxfp4.xclbin",
-                    "dequant_q4_1.xclbin",
+                    "dequant.xclbin",
                     "expert.xclbin",
                     "layer.xclbin",
-                    "lm_head.xclbin",
                     "mm.xclbin",
+                    "short_seq_mm.xclbin",
                     "model.q4nx",
                     "tokenizer.json",
                     "tokenizer_config.json"
@@ -549,20 +579,19 @@
         },
         "gpt-oss-sg": {
             "20b": {
-                "name": "GPT-OSS-SG-20B-NPU2",
-                "url": "https://huggingface.co/FastFlowLM/GPT-OSS-SG-20B-NPU2",
+                "name": "GPT-OSS-Safeguard-20b-NPU2",
+                "url": "https://huggingface.co/FastFlowLM/GPT-OSS-Safeguard-20b-NPU2/resolve/v0.9.20-merge-lm-head",
                 "modified_at": "2025-05-30T00:00:00Z",
                 "size": 20000000000,
-                "flm_min_version": "0.9.17",
+                "flm_min_version": "0.9.20",
                 "files":[
                     "attn.xclbin",
                     "config.json",
-                    "dequant_mxfp4.xclbin",
-                    "dequant_q4_1.xclbin",
+                    "dequant.xclbin",
                     "expert.xclbin",
                     "layer.xclbin",
-                    "lm_head.xclbin",
                     "mm.xclbin",
+                    "short_seq_mm.xclbin",
                     "model.q4nx",
                     "tokenizer.json",
                     "tokenizer_config.json"

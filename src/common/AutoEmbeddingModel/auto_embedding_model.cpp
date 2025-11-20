@@ -2,7 +2,7 @@
 /// \brief AutoEmbeddingModel class
 /// \author FastFlowLM Team
 /// \date 2025-10-23
-/// \version 0.9.17
+/// \version 0.9.20
 /// \note This is a source file for the AutoEmbeddingModel class
 
 #include "AutoEmbeddingModel/modeling_gemma_embedding.hpp"

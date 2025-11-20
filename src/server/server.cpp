@@ -4,7 +4,7 @@
  * \brief WebServer class and related declarations
  * \author FastFlowLM Team
  * \date 2025-06-24
- * \version 0.9.17
+ * \version 0.9.20
  */
 #include "server.hpp"
 #include "rest_handler.hpp"

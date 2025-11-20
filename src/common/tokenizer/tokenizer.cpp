@@ -2,7 +2,7 @@
 /// \brief Tokenizer implementation for text encoding/decoding
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.17
+/// \version 0.9.10
 #include "tokenizer/tokenizer.hpp"
 #include <iostream>
 #include <fstream>
@@ -15,9 +15,17 @@
 /// \brief Constructor
 /// \param model_path the model path
 Tokenizer::Tokenizer(const std::string& model_path) {
+    #ifdef _WIN32
     std::ifstream fs(model_path + "\\tokenizer.json", std::ios::in | std::ios::binary);
+    #else
+    std::ifstream fs(model_path + "/tokenizer.json", std::ios::in | std::ios::binary);
+    #endif
     if (fs.fail()) {
+        #ifdef _WIN32
         std::cerr << "Cannot open " << model_path + "\\tokenizer.json" << std::endl;
+        #else
+        std::cerr << "Cannot open " << model_path + "/tokenizer.json" << std::endl;
+        #endif
         exit(1);
     }
     std::string data;

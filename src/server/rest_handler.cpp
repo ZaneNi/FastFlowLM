@@ -4,7 +4,7 @@
  * \brief RestHandler class and related declarations
  * \author FastFlowLM Team
  * \date 2025-08-05
- * \version 0.9.17
+ * \version 0.9.20
  */
 #include "rest_handler.hpp"
 #include "wstream_buf.hpp"
@@ -53,6 +53,33 @@ static nlohmann::ordered_json normalize_messages(nlohmann::ordered_json messages
                     }
                 }
                 if (i + 1 < messages.size() && messages[i + 1].value("role", "") == "user") i++;
+                else break;
+            }
+
+            current_msg["content"] = merged_content_array;
+        }
+        else if (role == "system") {
+            nlohmann::ordered_json merged_content_array = nlohmann::ordered_json::array();
+
+            // Merge all consecutive system messages into array format
+            while (i < messages.size() && messages[i].value("role", "") == "system") {
+                if (messages[i].contains("content")) {
+                    if (messages[i]["content"].is_array()) {
+                        for (auto& item : messages[i]["content"]) {
+                            merged_content_array.push_back(item);
+                        }
+                    }
+                    else if (messages[i]["content"].is_string()) {
+                        std::string text = messages[i]["content"].get<std::string>();
+                        if (!text.empty()) {
+                            nlohmann::ordered_json text_item;
+                            text_item["type"] = "text";
+                            text_item["text"] = text;
+                            merged_content_array.push_back(text_item);
+                        }
+                    }
+                }
+                if (i + 1 < messages.size() && messages[i + 1].value("role", "") == "system") i++;
                 else break;
             }
 
