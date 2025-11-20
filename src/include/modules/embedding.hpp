@@ -2,7 +2,7 @@
 /// \brief embedding class
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.17
+/// \version 0.9.20
 /// \note This is a header file for the embedding class.
 
 #pragma once

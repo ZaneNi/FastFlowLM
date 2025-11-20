@@ -2,7 +2,7 @@
 /// \brief Model downloader class
 /// \author FastFlowLM Team
 /// \date 2025-06-24
-/// \version 0.9.17
+/// \version 0.9.20
 /// \note This class is used to download models from the huggingface
 #include "model_downloader.hpp"
 #include "utils/utils.hpp"
@@ -343,7 +343,13 @@ std::vector<std::pair<std::string, std::string>> ModelDownloader::build_download
             
             // Only add to download list if file doesn't exist
             if (!file_exists(local_path)) {
-                std::string url = base_url + "/resolve/main/" + filename + "?download=true";
+                std::string url;
+                if (std::string(base_url).find("resolve") != std::string::npos) { // resolve provided , may from a specific branch
+                    url = base_url + "/" + filename + "?download=true";
+                }
+                else {
+                    url = base_url + "/resolve/main/" + filename + "?download=true";
+                }
                 downloads.emplace_back(url, local_path);
             }
         }    

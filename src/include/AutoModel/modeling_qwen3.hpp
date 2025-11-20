@@ -2,7 +2,7 @@
 /// \brief qwen3 class
 /// \author FastFlowLM Team
 /// \date 2025-09-04
-/// \version 0.9.17
+/// \version 0.9.20
 /// \note This is a source file for the qwen3 class
 
 #pragma once

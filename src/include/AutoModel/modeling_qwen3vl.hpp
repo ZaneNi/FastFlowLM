@@ -2,7 +2,7 @@
 /// \brief Qwen3VL class
 /// \author FastFlowLM Team
 /// \date 2025-09-03
-/// \version 0.9.17
+/// \version 0.9.20
 /// \note This is a source file for the Qwen3VL class
 
 #pragma once
@@ -102,3 +102,17 @@ public:
     std::string generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os = std::cout) override;
     std::string apply_chat_template(nlohmann::ordered_json& messages) override;
 };
+
+
+/************              Qwen3VL_Thinking            **************/
+class Qwen3VL_Thinking : public Qwen3VL {
+    private:
+        int think_marker_id;
+    
+    public:
+        Qwen3VL_Thinking(xrt::device* npu_device_inst) : Qwen3VL(npu_device_inst) {
+    
+        }
+        std::string generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os) override;
+        std::string generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os = std::cout) override;
+    };
