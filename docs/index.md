@@ -99,6 +99,17 @@ sections:
       body: |
         Runs GPT-OSS-20B at 19 TPS (token per second) with 10× GPU efficiency — the fastest MoE on any NPU.
 
+  - type: media
+    variant: alt
+    kicker: "Gemma3 (Vision) on NPU"
+    title: "Gemma3 (Vision) understand and describe the image"
+    media:
+      src: "/assets/gemma3_4b.gif"
+      alt: "Gemma3 vision model understanding an image"
+      href: "https://youtu.be/BLd2j9dPw40?si=5GzOW2FlZgGVp8Xi"
+      kicker: "Gemma3 (Vision) on NPU"
+      body: |
+        Understand and describe images instantly — FastFlowLM runs Google Gemma3 fully on the NPU for fast, private, and efficient vision inference.
 
   - type: media
     variant: alt
