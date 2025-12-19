@@ -35,6 +35,7 @@ sections:
     title: "Hardware + runtime expertise"
     people:
       - name: "Tao Wei"
+        role: "Co-Founder, Chief Architect, and COO"
         role: "Professor of Electrical & Computer Engineering · Clemson University"
         image: "/assets/weitao.jpg"
         bio: |
@@ -46,6 +47,7 @@ sections:
           # - label: "Scholar"
           #   url: "https://scholar.google.com/citations?user=SsgrItsAAAAJ&hl=en"
       - name: "Ken Qing Yang"
+        role: "Co-Founder and CEO"      
         role: "Distinguished Engineering Professor · University of Rhode Island"
         image: "/assets/kenqingyang.png"
         bio: |
@@ -58,6 +60,7 @@ sections:
           - label: "DapuStor"
             url: "https://en.dapustor.com/"
       - name: "Zhenyu (Alfred) Xu"
+        role: "Co-Founder and CTO"    
         role: "Research Assistant Professor · Clemson University"
         image: "/assets/zhenyu.png"
         bio: |
