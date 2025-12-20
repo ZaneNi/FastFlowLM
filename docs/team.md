@@ -36,10 +36,9 @@ sections:
     people:
       - name: "Tao Wei"
         role: "Co-Founder, Chief Architect, and COO"
-        role: "Professor of Electrical & Computer Engineering · Clemson University"
         image: "/assets/weitao.jpg"
         bio: |
-          Leads the NEXT Lab focused on domain-specific accelerators, reconfigurable computing, and applied ML.
+          Professor of Electrical & Computer Engineering · Clemson University. Leads the NEXT Lab focused on domain-specific accelerators, reconfigurable computing, and applied ML.
           Guides FastFlowLM kernel strategy and academic collaborations.
         links:
           - label: "Clemson profile"
@@ -47,11 +46,10 @@ sections:
           # - label: "Scholar"
           #   url: "https://scholar.google.com/citations?user=SsgrItsAAAAJ&hl=en"
       - name: "Ken Qing Yang"
-        role: "Co-Founder and CEO"      
-        role: "Distinguished Engineering Professor · University of Rhode Island"
+        role: "Co-Founder and CEO"
         image: "/assets/kenqingyang.png"
         bio: |
-          With more than 30 years of experience in computer architecture and parallel processing, he is a serial entrepreneur who has successfully built four high-tech startups rooted in his research innovations—including VeloBit (acquired by Western Digital) and DapuStor (currently in the IPO process). 
+          Distinguished Engineering Professor · University of Rhode Island. With more than 30 years of experience in computer architecture and parallel processing, he is a serial entrepreneur who has successfully built four high-tech startups rooted in his research innovations—including VeloBit (acquired by Western Digital) and DapuStor (currently in the IPO process). 
         links:
           - label: "URI profile"
             url: "https://www.ele.uri.edu/~qyang/"
@@ -61,10 +59,9 @@ sections:
             url: "https://en.dapustor.com/"
       - name: "Zhenyu (Alfred) Xu"
         role: "Co-Founder and CTO"    
-        role: "Research Assistant Professor · Clemson University"
         image: "/assets/zhenyu.png"
         bio: |
-          Focused on domain-specific accelerator design, reconfigurable computing, and efficient on-device AI inference.
+          Research Assistant Professor · Clemson University. Focused on domain-specific accelerator design, reconfigurable computing, and efficient on-device AI inference.
           Brings deep experience in hardware–software co-optimization across FPGA, CGRA, and emerging AI accelerator architectures.
         links:
           - label: "Scholar"
