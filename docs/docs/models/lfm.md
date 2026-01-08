@@ -1,7 +1,7 @@
 ---
 layout: docs
 title: LFM
-nav_order: 7
+nav_order: 9
 parent: Models
 ---
 
@@ -37,6 +37,24 @@ flm run lfm2:1.2b
 
 ```shell
 flm run lfm2:2.6b
+```
+
+---
+
+## 🧩 Model Card: [LiquidAI/LFM2.5-1.2B-Instruct](https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct)
+
+- **Type:** Text-to-Text
+- **Think:** No
+- **Base Model:** [LiquidAI/LFM2.5-1.2B-Instruct](https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct)
+- **Quantization:** Q4_0
+- **Max Context Length:** 32k tokens 
+- **Default Context Length:** 32k tokens ([change default](https://fastflowlm.com/docs/instructions/cli/#-change-default-context-length-max))  
+- **[Set Context Length at Launch](https://fastflowlm.com/docs/instructions/cli/#-set-context-length-at-launch)**
+
+▶️ Run with FastFlowLM in PowerShell:  
+
+```shell
+flm run lfm2.5:1.2b
 ```
 
 ---

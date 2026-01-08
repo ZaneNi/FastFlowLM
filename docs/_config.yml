@@ -124,6 +124,8 @@ docs_nav:
         url: "/docs/models/gpt-oss/"
       - label: LiquidAI/LFM
         url: "/docs/models/lfm/"
+      - label: Microsoft/Phi
+        url: "/docs/models/phi/"
       - label: Whisper
         url: "/docs/models/whisper/"
       - label: EmbeddingGemma
