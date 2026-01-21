@@ -17,7 +17,9 @@ This section reports the performance of LLaMA 3.x on NPU with FastFlowLM (FLM).
 
 ---
 
-**Test system spec:** AMD Ryzen™ AI 7 350 (Kraken Point) with 32 GB DRAM; performance is comparable to other Kraken Point systems.
+### **Test System 1:** 
+
+AMD Ryzen™ AI 7 350 (Kraken Point) with 32 GB DRAM; performance is comparable to other Kraken Point systems.
 
 <div style="display:flex; flex-wrap:wrap;">
   <img src="/assets/bench/llama3_decoding.png" style="width:15%; min-width:300px; margin:4px;">

@@ -10,14 +10,16 @@ nav_order: 2
 This section reports the performance of Qwen 3 on NPU with FastFlowLM (FLM).
 
 > **Note:** 
-> - Results are based on FastFlowLM v0.9.22.  
+> - Results are based on FastFlowLM v0.9.28.  
 > - Under FLM's default NPU power mode (Performance)    
 > - Newer versions may deliver improved performance.
 > - Fine-tuned models show performance comparable to their base models.   
 
 ---
 
-**Test system spec:** AMD Ryzen™ AI 7 350 (Kraken Point) with 32 GB DRAM; performance is comparable to other Kraken Point systems.
+### **Test System 1:** 
+
+AMD Ryzen™ AI 7 350 (Kraken Point) with 32 GB DRAM; performance is comparable to other Kraken Point systems.
 
 <div style="display:flex; flex-wrap:wrap;">
   <img src="/assets/bench/qwen3_decoding.png" style="width:15%; min-width:300px; margin:4px;">
@@ -52,8 +54,17 @@ This section reports the performance of Qwen 3 on NPU with FastFlowLM (FLM).
 
 Prefill time-to-first-token (TTFT) for Qwen3-VL-4B on NPU (FastFlowLM) with different image resolutions.
 
-| Model        | HW  | 720p (1280×720) | 1080p (1920×1080) | 2K (2560×1440) | 4K (3840×2160) |
-|--------------|-----------|----------------:|------------------:|---------------:|---------------:|
-| Qwen3-VL-4B  | NPU (FLM) |            3.5 |               9.1 |           21.0 |             84.7 |
+**Mid Resolution Images:**
+
+| Model        | HW  | 720p (1280×720) | 1080p (1920×1080) | 
+|--------------|-----------|----------------:|------------------:|
+| Qwen3-VL-4B  | NPU (FLM) |            3.5 |               8.1 |
+
+
+**High Resolution Images:**
+
+| Model        | HW  | 2K (2560×1440) | 4K (3840×2160) |
+|--------------|-----------|---------------:|---------------:|
+| Qwen3-VL-4B  | NPU (FLM) |           15.2 |             47.4 |
 
 > This test uses a short prompt: “Describe this image.”

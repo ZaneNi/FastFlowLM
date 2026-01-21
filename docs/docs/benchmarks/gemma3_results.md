@@ -10,14 +10,16 @@ nav_order: 3
 This section reports the performance on NPU with FastFlowLM (FLM).
 
 > **Note:** 
-> - Results are based on FastFlowLM v0.9.23.
+> - Results are based on FastFlowLM v0.9.28.
 > - Under FLM's default NPU power mode (Performance)  
 > - Newer versions may deliver improved performance.
 > - Fine-tuned models show performance comparable to their base models. 
 
 ---
 
-**Test system spec:** AMD Ryzen™ AI 7 350 (Kraken Point) with 32 GB DRAM; performance is comparable to other Kraken Point systems.
+### **Test System 1:** 
+
+AMD Ryzen™ AI 7 350 (Kraken Point) with 32 GB DRAM; performance is comparable to other Kraken Point systems.
 
 <div style="display:flex; flex-wrap:wrap;">
   <img src="/assets/bench/gemma3_decoding.png" style="width:15%; min-width:300px; margin:4px;">
@@ -51,6 +53,6 @@ This section reports the performance on NPU with FastFlowLM (FLM).
 
 | **Model**        | **HW**       | **Image** |
 |------------------|--------------------|--------:|
-| **Gemma 3 4B**   | NPU (FLM)    | 3.4|
+| **Gemma 3 4B**   | NPU (FLM)    | 2.6|
 
 > This test uses a short prompt: “Describe this image.”
