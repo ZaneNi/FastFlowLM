@@ -127,7 +127,7 @@ flm port
 
 ---
 
-### ⚡ NPU Power Mode NPU Power Mode
+### ⚡ NPU Power Mode
 
 By default, **FLM runs in `performance` NPU power mode**. You can switch to other NPU power modes (`powersaver`, `balanced`, or `turbo`) using the `--pmode` flag:
 

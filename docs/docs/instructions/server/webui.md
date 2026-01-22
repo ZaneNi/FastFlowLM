@@ -11,7 +11,7 @@ parent: Local Server (Server Mode)
   - [ Option 1: Use Open WebUI Desktop](#option-1-use-open-webui-desktop)  
   - [ Option 2: Use Open WebUI in Docker](#option-2-use-open-webui-in-docker)  
 - **[🧪 More Examples](#-more-examples)**
-  - [ Example: Multi Models Comparision Enabled by FLM Queuing](#-example-multi-models-comparision-enabled-by-flm-queuing)  
+  - [ Example: Multi Models Comparison Enabled by FLM Queuing](#-example-multi-models-comparison-enabled-by-flm-queuing)  
   - [ Example: Agentic AI Web Search with FastFlowLM](#-example-agentic-ai-web-search-with-fastflowlm)  
   - [ Example: Local Private Database with RAG + FastFlowLM](#️-example-local-private-database-with-rag--fastflowlm)
   
@@ -229,7 +229,7 @@ Well done 🎉 — now let’s explore more apps together!
 
 ---
 
-## 🤖 Example: Multi Models Comparision Enabled by FLM Queuing
+## 🤖 Example: Multi Models Comparison Enabled by FLM Queuing
 
 A step-by-step guide to launching FastFlowLM and interacting with multiple models via Open WebUI.
 

@@ -1,6 +1,6 @@
 ---
 layout: docs
-title: Microsfot AI Toolkit + FLM
+title: Microsoft AI Toolkit + FLM
 nav_order: 4
 parent: Local Server (Server Mode)
 ---

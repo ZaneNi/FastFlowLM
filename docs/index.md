@@ -145,7 +145,7 @@ sections:
         No drivers, no guesswork—just run the installer, pull a model, and start chatting.
       items:
         - heading: "Zero-conf installer"
-          body: "igned installers for every Ryzen™ AI 300 laptop — download, run, done."
+          body: "Signed installers for every Ryzen™ AI 300 laptop — download, run, done."
         - heading: "Drop-in APIs"
           body: "OpenAI-compatible APIs — plug in your existing tools instantly."
         - heading: "Secure by default"
@@ -211,9 +211,9 @@ sections:
       metric_cards:
         - label: "Llama3.2 1B @ Q4_1 (4-bit with bias)"
           value: "66 tok/s"
-          desc: "Ryzen™ AI 9 HX 350 · ms-level latency"
-        - label: "Gemma 3 4B Vision"
-          value: "~3 sec"
+          desc: "Ryzen™ AI 7 HX 350 · ms-level latency"
+        - label: "Gemma 3 Vision"
+          value: "~2 sec"
           desc: "Image understanding on XDNA2 NPU"
         - label: "Power draw (CPU + NPU)"
           value: "< 2 W"

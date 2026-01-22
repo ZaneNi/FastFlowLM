@@ -40,13 +40,13 @@ Run the following command in your powershell to launch the FastFlowLM server:
 #### Option A: OpenAI API
 
 1. Click **⚙️** to open the setting panel.
-2. Under **Community Plugins** section (left), clik **AI Providers**.
+2. Under **Community Plugins** section (left), click **AI Providers**.
 3. Click **➕** to create a new provider.
 4. Set **Provider type** to **OpenAI**.
 5. Enter the **Provider URL**: `http://127.0.0.1:52625/v1`.
 6. Enter a **Provider name** (e.g., `FLM_OpenAI`).
 7. Enter any **API key** (e.g., `flm`).
-8. On the **Model** line, click the **🔄** icon to load available models, then select your preferred modle (e.g. llama3.2:1b).
+8. On the **Model** line, click the **🔄** icon to load available models, then select your preferred model (e.g. llama3.2:1b).
 9. Click **Save**.
 
 #### Option B: OpenAI API
@@ -68,7 +68,7 @@ Run the following command in your powershell to launch the FastFlowLM server:
 1. Click **⚙️** to open the setting panel.
 2. Under **Community Plugins** section (left), click **Local GPT**.
 3. Set **Main AI Provider** to the provider you configured earlier (e.g., `FLM_OpenAI ~ llama3.2:1b`).
-4. Review the **Action list** to see what **Loca GPT** can do.
+4. Review the **Action list** to see what **Local GPT** can do.
 
 #### Set up hotkeys
 
