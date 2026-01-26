@@ -99,8 +99,69 @@ std::string Qwen3::generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_
     return this->_shared_generate(meta_info, length_limit, os);
 }
 
-std::pair<std::string, std::string> Qwen3::parse_nstream_content(const std::string response_text) {
-    return std::make_pair(std::string(), std::string());
+NonStreamResult Qwen3::parse_nstream_content(const std::string response_text) {
+    NonStreamResult result;
+
+    std::string name, arguments;
+    std::string content, reasoning_content;
+
+    std::string think_start_tag = "<think>";
+    std::string think_end_tag = "</think>";
+    std::string tool_start_tag = "<tool_call>";
+    std::string tool_end_tag = "</tool_call>";
+
+    size_t think_start_pos = response_text.find(think_start_tag);
+    size_t think_end_pos = response_text.find(think_end_tag);
+    size_t tool_start_pos = response_text.find(tool_start_tag);
+    size_t tool_end_pos = response_text.find(tool_end_tag);
+
+    bool is_reasoning = !(think_start_pos == std::string::npos || think_end_pos == std::string::npos);
+    bool is_tool = !(tool_start_pos == std::string::npos || tool_end_pos == std::string::npos);
+    bool is_content = !is_tool;
+
+    if (is_reasoning) {
+        // Find reasoning part
+        think_start_pos += think_start_tag.length();
+        std::string reasoning_str = response_text.substr(think_start_pos, think_end_pos - think_start_pos);
+        result.reasoning_content = reasoning_str;
+    }
+
+    if (is_tool) {
+        // Find tool calling part
+        tool_start_pos += tool_start_tag.length();
+        std::string json_str = response_text.substr(tool_start_pos, tool_end_pos - tool_start_pos);
+        // Parse "name" 
+        std::string key_name = "\"name\": \"";
+        size_t name_start = json_str.find(key_name);
+        if (name_start != std::string::npos) {
+            name_start += key_name.length();
+            size_t name_end = json_str.find("\"", name_start);
+            if (name_end != std::string::npos) {
+                name = json_str.substr(name_start, name_end - name_start);
+            }
+        }
+        // Parse "arguments"
+        std::string key_args = "\"arguments\":";
+        size_t args_pos = json_str.find(key_args);
+        if (args_pos != std::string::npos) {
+            size_t brace_start = json_str.find("{", args_pos);
+            size_t brace_end = json_str.rfind("}"); // Find the last closing brace
+
+            if (brace_start != std::string::npos && brace_end != std::string::npos && brace_end > brace_start) {
+                arguments = json_str.substr(brace_start, brace_end - brace_start);
+            }
+        }
+
+        result.tool_name = name;
+        result.tool_args = arguments;
+
+    }
+    else if (is_content) {
+        std::string content_str = response_text.substr(think_end_pos + think_end_tag.length());
+        result.content = content_str;
+    }
+
+    return result;
 }
 
 StreamResult Qwen3::parse_stream_content(const std::string content) {
@@ -194,7 +255,8 @@ std::string Qwen3_IT::generate_with_prompt(chat_meta_info_t& meta_info, lm_unifo
 }
 
 // Non-stream
-std::pair<std::string, std::string> Qwen3_IT::parse_nstream_content(const std::string response_text) {
+NonStreamResult Qwen3_IT::parse_nstream_content(const std::string response_text) {
+    NonStreamResult result;
 
     std::string name, arguments;
 
@@ -235,7 +297,11 @@ std::pair<std::string, std::string> Qwen3_IT::parse_nstream_content(const std::s
             arguments = json_str.substr(brace_start, brace_end - brace_start);
         }
     }
-    return { name, arguments };
+
+    result.tool_name = name;
+    result.tool_args = arguments;
+
+    return result;
 }
 
 // Stream
@@ -384,6 +450,72 @@ std::string Qwen3_TK::generate_with_prompt(chat_meta_info_t& meta_info, lm_unifo
     }
     return this->generate(meta_info, length_limit, os);
 }
+
+NonStreamResult Qwen3_TK::parse_nstream_content(const std::string response_text) {
+    NonStreamResult result;
+
+    std::string name, arguments;
+    std::string content, reasoning_content;
+
+    std::string think_start_tag = "<think>";
+    std::string think_end_tag = "</think>";
+    std::string tool_start_tag = "<tool_call>";
+    std::string tool_end_tag = "</tool_call>";
+
+    size_t think_start_pos = response_text.find(think_start_tag);
+    size_t think_end_pos = response_text.find(think_end_tag);
+    size_t tool_start_pos = response_text.find(tool_start_tag);
+    size_t tool_end_pos = response_text.find(tool_end_tag);
+
+    bool is_reasoning = !(think_start_pos == std::string::npos || think_end_pos == std::string::npos);
+    bool is_tool = !(tool_start_pos == std::string::npos || tool_end_pos == std::string::npos);
+    bool is_content = !is_tool;
+
+    if (is_reasoning) {
+        // Find reasoning part
+        think_start_pos += think_start_tag.length();
+        std::string reasoning_str = response_text.substr(think_start_pos, think_end_pos - think_start_pos);
+        result.reasoning_content = reasoning_str;
+    }
+
+    if (is_tool) {
+        // Find tool calling part
+        tool_start_pos += tool_start_tag.length();
+        std::string json_str = response_text.substr(tool_start_pos, tool_end_pos - tool_start_pos);
+        // Parse "name" 
+        std::string key_name = "\"name\": \"";
+        size_t name_start = json_str.find(key_name);
+        if (name_start != std::string::npos) {
+            name_start += key_name.length();
+            size_t name_end = json_str.find("\"", name_start);
+            if (name_end != std::string::npos) {
+                name = json_str.substr(name_start, name_end - name_start);
+            }
+        }
+        // Parse "arguments"
+        std::string key_args = "\"arguments\":";
+        size_t args_pos = json_str.find(key_args);
+        if (args_pos != std::string::npos) {
+            size_t brace_start = json_str.find("{", args_pos);
+            size_t brace_end = json_str.rfind("}"); // Find the last closing brace
+
+            if (brace_start != std::string::npos && brace_end != std::string::npos && brace_end > brace_start) {
+                arguments = json_str.substr(brace_start, brace_end - brace_start);
+            }
+        }
+
+        result.tool_name = name;
+        result.tool_args = arguments;
+
+    }
+    else if (is_content) {
+        std::string content_str = response_text.substr(think_end_pos + think_end_tag.length());
+        result.content = content_str;
+    }
+
+    return result;
+}
+
 
 StreamResult Qwen3_TK::parse_stream_content(const std::string content) {
     return _shared_think_tool_calling_pasrsed(content);

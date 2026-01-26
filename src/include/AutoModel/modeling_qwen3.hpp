@@ -26,7 +26,7 @@ public:
     std::string generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os, std::function<bool()> is_cancelled = [] { return false; }) override;
     std::string generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os = std::cout) override;
     std::string apply_chat_template(nlohmann::ordered_json& messages, nlohmann::ordered_json tools = nlohmann::ordered_json::object()) override;
-    std::pair<std::string, std::string> parse_nstream_content(const std::string response_text);
+    NonStreamResult parse_nstream_content(const std::string response_text);
     StreamResult parse_stream_content(const std::string content);
 
     /// \brief Override configure_parameter to handle Qwen3-specific parameters
@@ -72,7 +72,7 @@ public:
     std::string generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os, std::function<bool()> is_cancelled = [] { return false; }) override;
     std::string generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os = std::cout) override;
     std::string apply_chat_template(nlohmann::ordered_json& messages, nlohmann::ordered_json tools = nlohmann::ordered_json::object()) override;
-    std::pair<std::string, std::string> parse_nstream_content(const std::string response_text);
+    NonStreamResult parse_nstream_content(const std::string response_text);
     StreamResult parse_stream_content(const std::string content);
 };
 
@@ -93,6 +93,7 @@ public:
     std::string generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os, std::function<bool()> is_cancelled = [] { return false; }) override;
     std::string generate_with_prompt(chat_meta_info_t& meta_info, lm_uniform_input_t& input, int length_limit, std::ostream& os = std::cout) override;
     std::string apply_chat_template(nlohmann::ordered_json& messages, nlohmann::ordered_json tools = nlohmann::ordered_json::object()) override;
+    NonStreamResult parse_nstream_content(const std::string response_text);
     StreamResult parse_stream_content(const std::string content);
     };
 

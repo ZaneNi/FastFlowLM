@@ -53,6 +53,13 @@ struct StreamResult {
 	std::string tool_args_str; 
 };
 
+struct NonStreamResult {
+	std::string content;
+	std::string reasoning_content;
+	std::string tool_name;
+	std::string tool_args;
+};
+
 typedef enum {
     EOT_DETECTED, 
     MAX_LENGTH_REACHED,
@@ -314,8 +321,10 @@ public:
 
 	virtual std::string apply_chat_template(nlohmann::ordered_json& messages, nlohmann::ordered_json tools = nlohmann::ordered_json::object()) = 0;
 
-	virtual std::pair<std::string, std::string> parse_nstream_content(const std::string response_text) {
-		return std::make_pair(std::string(), std::string());
+	virtual NonStreamResult parse_nstream_content(const std::string response_text) {
+		NonStreamResult result;
+		result.content = response_text;
+		return result;
 	}
 
 	virtual StreamResult parse_stream_content(const std::string content) {

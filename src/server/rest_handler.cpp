@@ -284,31 +284,35 @@ void RestHandler::configure_chat_engine_parameters(const json& options, const js
 
 json RestHandler::build_nstream_response(std::string response_text) {
     // Get tool info
-    auto tool_info = auto_chat_engine->parse_nstream_content(response_text);
+    NonStreamResult result = auto_chat_engine->parse_nstream_content(response_text);
 
     json message;
     message["role"] = "assistant";
 
-    bool is_tool_call = !tool_info.first.empty();
+    bool is_reasoning = !result.reasoning_content.empty();
+    bool is_tool_call = !result.tool_name.empty();
+
+    if (is_reasoning) {
+        message["reasoning_content"] = result.reasoning_content;
+    }
 
     if (is_tool_call) {
-        message["content"] = nullptr;
         message["tool_calls"] = json::array({
             {
                 {"index", 0},
-                {"id", "call_" + tool_info.first}, // Generating a pseudo ID based on name or random
+                {"id", "call_" + std::to_string(std::time(nullptr))}, 
                 {"type", "function"},
                 {"function", {
-                    {"name", tool_info.first},
-                    {"arguments", tool_info.second}
+                    {"name", result.tool_name},
+                    {"arguments", result.tool_args}
                 }}
             }
         });
     }
     else {
-        // Standard text response
-        message["content"] = response_text;
+        message["content"] = result.content;
     }
+
 
     // Construct the final choice object
     return json::array({
