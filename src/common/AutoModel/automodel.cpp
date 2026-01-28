@@ -184,7 +184,6 @@ std::string AutoModel::_shared_generate(chat_meta_info_t& meta_info, int length_
     stop_reason_t reason = EOT_DETECTED;
     int last_sampled_token = this->last_token;
     this->token_history.push_back(this->last_token);
-    auto decoding_start_time = time_utils::now();
     if (this->is_normal_token(last_sampled_token) && last_sampled_token != -1){
         std::string token_str = this->tokenizer->run_time_decoder(last_sampled_token);
         result += token_str;
@@ -194,7 +193,7 @@ std::string AutoModel::_shared_generate(chat_meta_info_t& meta_info, int length_
     if (this->is_eos(last_sampled_token)){
         return result;
     }
-    this->profiler_list[TKOEN_DECODE_TIME].stop(1);
+    this->profiler_list[TKOEN_DECODE_TIME].reset();
     if (this->total_tokens >= this->MAX_L){
         header_print("WARNING", "Max length reached, stopping generation...");
         reason = MAX_LENGTH_REACHED;
@@ -238,9 +237,7 @@ std::string AutoModel::_shared_generate(chat_meta_info_t& meta_info, int length_
             break;
         }
     }
-
-    auto decoding_end_time = time_utils::now();
-    meta_info.decoding_duration = (uint64_t)time_utils::duration_ns(decoding_start_time, decoding_end_time).first;
+    meta_info.decoding_duration = (uint64_t)(time_utils::cast_to_us(this->profiler_list[DECODING_TIME].get_total_time()).first) * 1e3;
     meta_info.stop_reason = reason;
     if (this->total_tokens >= this->MAX_L){
         header_print("WARNING", "Max length reached, stopping generation...");

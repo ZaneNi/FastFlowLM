@@ -196,6 +196,9 @@ bool parse_options(int argc, char *argv[], ParsedArgs& parsed_args) {
                 }
                 return true;
             }
+            if (parsed_args.command == "bench") {
+                return true;
+            }
         } else {
             std::cerr << "Error: Command is required" << std::endl;
             return false;
