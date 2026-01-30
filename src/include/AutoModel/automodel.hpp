@@ -282,6 +282,20 @@ public:
 		return std::find(this->eos_token_ids.begin(), this->eos_token_ids.end(), token) != this->eos_token_ids.end();
 	}
 
+	/// \brief Prepare the benchmark
+	/// \param text the text to benchmark
+	/// \return a pair of the number of tokens and the text that produce 1000 tokens
+	std::pair<int, std::string> prepare_benchmark(std::string& text){
+		std::vector<int> tokens = this->tokenizer->encode(text);
+		int num_tokens = tokens.size();
+		std::string benchmark_text = text;
+		if (num_tokens > 1000 - 32) {
+			tokens.resize(1000 - 32); // considering that the chat template always add some tokens to it
+			benchmark_text = this->tokenizer->decode(tokens);
+		}
+		return { num_tokens, benchmark_text };
+	}
+
 	//************ Unique for each model *************/
 	
 	virtual void load_model(std::string model_path, json model_info, int default_context_length = -1, bool enable_preemption = false) {}

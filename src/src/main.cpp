@@ -23,6 +23,7 @@
 #include <shellapi.h>
 #include "utils/vm_args.hpp"
 #include <boost/program_options.hpp>
+#include "benchmarking.hpp"
 
 #include "AutoModel/automodel.hpp"
 
@@ -221,14 +222,14 @@ int main(int argc, char* argv[]) {
         tag = "model-faker"; // Use default tag
     }
     
-    if (command == "run" || command == "serve" || command == "pull" || command == "remove") {
+    if (command == "run" || command == "serve" || command == "pull" || command == "remove" || command == "bench") {
       if (tag != "model-faker" && (!availble_models.is_model_supported(tag))) {
             header_print("ERROR", "Model not found: " << tag << "; Please check with `flm list` and try again.");
             return 1;
         }
     }
   
-    if (command == "serve" || command == "run"){
+    if (command == "serve" || command == "run" || command == "bench"){
         // Configure AMD XRT for the specified power mode
         if (power_mode == "default" || power_mode == "powersaver" || power_mode == "balanced" || 
             power_mode == "performance" || power_mode == "turbo") {
@@ -258,7 +259,10 @@ int main(int argc, char* argv[]) {
             std::filesystem::create_directories(models_dir);
         }
 
-        if (command == "run") {
+        if (command == "bench") {
+            benchmarking::BenchmarkResults_t results = benchmarking::run_benchmarks(tag, parsed_args.input_file_name, availble_models);
+        }
+        else if (command == "run") {
             check_and_notify_new_version();
             Runner runner(availble_models, downloader, tag, asr, embed, ctx_length, preemption);
             runner.run();
