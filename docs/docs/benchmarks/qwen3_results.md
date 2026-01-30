@@ -10,7 +10,7 @@ nav_order: 2
 This section reports the performance of Qwen 3 on NPU with FastFlowLM (FLM).
 
 > **Note:** 
-> - Results are based on FastFlowLM v0.9.28.  
+> - Results are based on FastFlowLM v0.9.31.  
 > - Under FLM's default NPU power mode (Performance)    
 > - Newer versions may deliver improved performance.
 > - Fine-tuned models show performance comparable to their base models.   
@@ -43,10 +43,10 @@ AMD Ryzen™ AI 7 350 (Kraken Point) with 32 GB DRAM; performance is comparable 
 
 | **Model**        | **HW**       | **1k** | **2k** | **4k** | **8k** | **16k** | **32k** |
 |------------------|--------------------|--------:|--------:|--------:|--------:|---------:|---------:|
-| **Qwen 3 0.6B**  | NPU (FLM)    | 1280 |	1356 |	1128 |	779 |	444 |	236 |
-| **Qwen 3 1.7B**  | NPU (FLM)    | 939 |	1029 |	916 |	674 |	408 |	225|
-| **Qwen 3 4B**    | NPU (FLM)    | 509 |	574 |	543 |	435 |	282 |	164| 
-| **Qwen 3 8B**    | NPU (FLM)    | 357 |	420 |	408 |	345 |	243 |	150|
+| **Qwen 3 0.6B**  | NPU (FLM)    | 1494 |	2003 |	2165 |	1981 |	1485 |	907 |
+| **Qwen 3 1.7B**  | NPU (FLM)    | 956 |	1263 |	1434 |	1411 |	1143 |	768|
+| **Qwen 3 4B**    | NPU (FLM)    | 509 |	582 |	615 |	576 |	448 |	303| 
+| **Qwen 3 8B**    | NPU (FLM)    | 357 |	435 |	457 |	442 |	367 |	260|
 
 ---
 
