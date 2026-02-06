@@ -48,12 +48,31 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/../third_party/tokenizers-cpp
 file(GLOB SOURCES "src/*.cpp" "runner/*.cpp" "common/*.cpp" "common/*/*.cpp" "server/*.cpp" "pull/*.cpp" )
 file(GLOB HEADERS "include/*.hpp" "runner/*.hpp" "common/*.hpp" "common/*/*.hpp" "server/*.hpp" "pull/*.hpp")
 
+# Exclude files that depend on missing libraries for Linux
 if(NOT WIN32)
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_gemma3\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_gemma3_image\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_gemma3_text\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_gpt_oss\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_lfm2\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_phi4\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_qwen2\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_qwen3\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_qwen3vl\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_qwen3vl_image\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_whisper\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_whisper_audio\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*modeling_gemma_embedding\\.cpp$")
+    list(FILTER SOURCES EXCLUDE REGEX ".*auto_embedding_model\\.cpp$")
+
     set_source_files_properties(
         ${CMAKE_SOURCE_DIR}/common/image_process_utils/imageprocAVX512.cpp
         PROPERTIES
         COMPILE_OPTIONS "-mavx512f;-mavx512dq;-mavx512vl;-mavx512bw;-mfma"
     )
+
+    # Define a macro to indicate limited model support on Linux
+    add_compile_definitions(FASTFLOWLM_LINUX_LIMITED_MODELS=1)
 endif()
 
 
@@ -139,21 +158,29 @@ target_link_libraries(flm PUBLIC
     xrt_coreutil
     q4_npu_eXpress
     llama_npu
-    qwen2_npu
-    qwen_npu
-    gemma_npu
-    gemma_text_npu
-    gpt_oss_npu
-    whisper_npu
-    qwen3vl_npu
-    gemma_embedding
-    lfm2_npu
-    phi4_npu
     dequant
     gemm
     lm_head
     mha
-    npu_utils
+)
+
+if(WIN32)
+    target_link_libraries(flm PUBLIC
+        qwen2_npu
+        qwen_npu
+        gemma_npu
+        gemma_text_npu
+        gpt_oss_npu
+        whisper_npu
+        qwen3vl_npu
+        gemma_embedding
+        lfm2_npu
+        phi4_npu
+        npu_utils
+    )
+endif()
+
+target_link_libraries(flm PUBLIC
     avformat
     avcodec
     avutil

@@ -8,7 +8,9 @@
 */
 #include "runner.hpp"
 #include "harmony_filter.hpp"
+#ifndef FASTFLOWLM_LINUX_LIMITED_MODELS
 #include "AutoEmbeddingModel/all_embedding_model.hpp"
+#endif
 #include <iostream>
 #include <sstream>
 #include <filesystem>
@@ -45,6 +47,7 @@ Runner::Runner(model_list& supported_models, ModelDownloader& downloader, std::s
         header_print("Warning", "Embed model not supported in CLI; Use 'flm serve -e 1'");
     }
 
+#ifndef FASTFLOWLM_LINUX_LIMITED_MODELS
     if (this->asr) {
         // load asr model
         std::string whisper_tag = "whisper-v3:turbo";
@@ -56,6 +59,11 @@ Runner::Runner(model_list& supported_models, ModelDownloader& downloader, std::s
         std::string whisper_model_path = this->supported_models.get_model_path(new_whisper_tag);
         this->whisper_engine->load_model(whisper_model_path, whisper_model_info, this->preemption);
     }
+#else
+    if (this->asr) {
+        header_print("Error", "ASR models are not supported in this build");
+    }
+#endif
 
     if (ctx_length != -1) {
         this->ctx_length = ctx_length >= 512 ? ctx_length : 512;
@@ -231,6 +239,7 @@ void Runner::run() {
                     uniformed_input.image_payload_types.push_back(FILE_NAME);
                 }
                 else if (filename.find(".wav") != std::string::npos || filename.find(".mp3") != std::string::npos || filename.find(".ogg") != std::string::npos || filename.find(".m4a") != std::string::npos) {
+#ifndef FASTFLOWLM_LINUX_LIMITED_MODELS
                     if (this->asr) {
                         // check if the file exists
                         if (!std::filesystem::exists(filename)) {
@@ -249,6 +258,10 @@ void Runner::run() {
                         header_print("Warning", "No asr model loaded, cannot load audio file");
                         continue;
                     }
+#else
+                    header_print("Warning", "ASR models are not supported in this build");
+                    continue;
+#endif
 
                 }
                 else{
