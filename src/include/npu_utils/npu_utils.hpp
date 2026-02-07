@@ -50,7 +50,6 @@
 #include "buffer.hpp"
 #include "utils/debug_utils.hpp"
 #include <cmath>
-#ifndef __WINDOWS__
 
 #include "xrt/experimental/xrt_kernel.h"
 #include "xrt/experimental/xrt_ext.h"
@@ -58,14 +57,6 @@
 #include "xrt/experimental/xrt_elf.h"
 
 #include "aiebu/aiebu.h"
-#else
-
-#include "xrt/experimental/xrt_kernel.h"
-#include "xrt/experimental/xrt_ext.h"
-#include "xrt/experimental/xrt_module.h"
-#include "xrt/experimental/xrt_elf.h"
-#include "aiebu/aiebu.h"
-#endif
 
 #include "npu_instr_utils.hpp"
 
