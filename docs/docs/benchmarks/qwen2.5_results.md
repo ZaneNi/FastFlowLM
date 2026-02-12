@@ -34,6 +34,7 @@ AMD Ryzen™ AI 7 350 (Kraken Point) with 32 GB DRAM; performance is comparable 
 |------------------|--------------------|--------:|--------:|--------:|--------:|---------:|---------:|
 | **Qwen2.5-3B-Instruct**  | NPU (FLM)    | 23.5	| 22.5	| 19.8	| 16.8	| 12.5	| 8.4|
 | **Qwen2.5-VL-3B-Instruct**  | NPU (FLM)    | 23.5	| 22.5	| 19.8	| 16.8	| 12.5	| 8.4|
+
 ---
 
 ### 🚀 Prefill Speed (TPS, or Tokens per Second, with different prompt lengths)
