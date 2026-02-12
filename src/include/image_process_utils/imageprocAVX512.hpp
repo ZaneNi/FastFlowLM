@@ -254,5 +254,17 @@ namespace avx512 {
         float image_std
     );
 
+    // AVX-512 optimized rescale and normalize function (per-channel mean/std)
+    void rescale_and_normalize_avx512(
+        const uint8_t *image_src,
+        float *output_buffer,
+        int image_width, int image_height, int image_channels,
+        bool do_rescale,
+        float rescale_factor,
+        bool do_normalize,
+        const std::vector<float>& image_mean,
+        const std::vector<float>& image_std
+    );
+
 } // namespace avx512
 } // namespace imgproc

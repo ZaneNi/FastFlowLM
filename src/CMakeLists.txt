@@ -83,6 +83,7 @@ target_link_libraries(flm PUBLIC
     q4_npu_eXpress
     llama_npu
     qwen2_npu
+    qwen2vl_npu
     qwen_npu
     gemma_npu
     gemma_text_npu
