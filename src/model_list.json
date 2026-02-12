@@ -629,7 +629,7 @@
                     "tokenizer.json",
                     "tokenizer_config.json"
                 ],
-                "default_context_length": 8192,
+                "default_context_length": 32768,
                 "details": {
                     "family": "qwen2",
                     "think": true,
@@ -654,7 +654,7 @@
                     "tokenizer_config.json",
                     "vision_weights.q4nx"
                 ],
-                "default_context_length": 8192,
+                "default_context_length": 32768,
                 "details": {
                     "family": "qwen2vl",
                     "think": true,
