@@ -386,5 +386,132 @@ namespace avx512 {
         }
     }
 
+    void rescale_and_normalize_avx512(
+        const uint8_t *image_src,
+        float *output_buffer,
+        int image_width, int image_height, int image_channels,
+        bool do_rescale,
+        float rescale_factor,
+        bool do_normalize,
+        const std::vector<float>& image_mean,
+        const std::vector<float>& image_std
+    ) {
+        if (!has_avx512f()) {
+            // Fallback to scalar implementation
+            size_t plane_size = static_cast<size_t>(image_width) * image_height;
+            int channels = std::min(image_channels, 3);
+            
+            for (int c = 0; c < channels; ++c) {
+                const uint8_t* p_src = image_src + c * plane_size;
+                float* p_dst = output_buffer + c * plane_size;
+                float mean = (do_normalize && c < image_mean.size()) ? image_mean[c] : 0.0f;
+                float std_dev = (do_normalize && c < image_std.size()) ? image_std[c] : 1.0f;
+                
+                bool local_rescale = do_rescale;
+                if (local_rescale && do_normalize) {
+                    mean *= (1.0f / rescale_factor);
+                    std_dev *= (1.0f / rescale_factor);
+                    local_rescale = false;
+                }
+                
+                float std_inv = (std_dev != 0.0f) ? 1.0f / std_dev : 0.0f;
+
+                for (size_t i = 0; i < plane_size; ++i) {
+                    float val = static_cast<float>(p_src[i]);
+                    if (local_rescale) val *= rescale_factor;
+                    if (do_normalize) {
+                         val = (val - mean) * std_inv;
+                    }
+                    p_dst[i] = val;
+                }
+            }
+            return;
+        }
+
+        const size_t plane_size = static_cast<size_t>(image_width) * image_height;
+        const int channels = std::min(image_channels, 3);
+
+        #pragma omp parallel for
+        for (int c = 0; c < channels; ++c) {
+            const uint8_t* p_src = image_src + c * plane_size;
+            float* p_dst = output_buffer + c * plane_size;
+            
+            float mean = (c < image_mean.size()) ? image_mean[c] : 0.0f;
+            float std_dev = (c < image_std.size()) ? image_std[c] : 1.0f;
+            
+            bool local_do_rescale = do_rescale;
+            
+            if (local_do_rescale && do_normalize) {
+                mean *= 1.0f / rescale_factor;
+                std_dev *= 1.0f / rescale_factor;
+                local_do_rescale = false;
+            }
+
+            const size_t total_pixels = plane_size;
+            const size_t simd_width = 16;
+            const size_t unroll_factor = 4;
+            const size_t vectorized_count = (total_pixels / (simd_width * unroll_factor)) * (simd_width * unroll_factor);
+            
+            size_t i = 0;
+
+            if (do_normalize) {
+                const __m512 v_mean = _mm512_set1_ps(mean);
+                const __m512 v_std_inv = _mm512_set1_ps(1.0f / std_dev);
+                
+                for (; i < vectorized_count; i += simd_width * unroll_factor) {
+                    _mm_prefetch(reinterpret_cast<const char*>(p_src + i + 64), _MM_HINT_T0);
+                    
+                    __m128i u8_vec0 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p_src + i));
+                    __m128i u8_vec1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p_src + i + 16));
+                    __m128i u8_vec2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p_src + i + 32));
+                    __m128i u8_vec3 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p_src + i + 48));
+                    
+                    __m512 f32_vec0 = _mm512_cvtepi32_ps(_mm512_cvtepu8_epi32(u8_vec0));
+                    __m512 f32_vec1 = _mm512_cvtepi32_ps(_mm512_cvtepu8_epi32(u8_vec1));
+                    __m512 f32_vec2 = _mm512_cvtepi32_ps(_mm512_cvtepu8_epi32(u8_vec2));
+                    __m512 f32_vec3 = _mm512_cvtepi32_ps(_mm512_cvtepu8_epi32(u8_vec3));
+                    
+                    _mm512_storeu_ps(p_dst + i, _mm512_mul_ps(_mm512_sub_ps(f32_vec0, v_mean), v_std_inv));
+                    _mm512_storeu_ps(p_dst + i + 16, _mm512_mul_ps(_mm512_sub_ps(f32_vec1, v_mean), v_std_inv));
+                    _mm512_storeu_ps(p_dst + i + 32, _mm512_mul_ps(_mm512_sub_ps(f32_vec2, v_mean), v_std_inv));
+                    _mm512_storeu_ps(p_dst + i + 48, _mm512_mul_ps(_mm512_sub_ps(f32_vec3, v_mean), v_std_inv));
+                }
+                
+                for (; i + simd_width <= total_pixels; i += simd_width) {
+                    __m512 f32_vec = _mm512_cvtepi32_ps(_mm512_cvtepu8_epi32(_mm_loadu_si128(reinterpret_cast<const __m128i*>(p_src + i))));
+                    _mm512_storeu_ps(p_dst + i, _mm512_mul_ps(_mm512_sub_ps(f32_vec, v_mean), v_std_inv));
+                }
+
+                for (; i < total_pixels; ++i) {
+                    p_dst[i] = (static_cast<float>(p_src[i]) - mean) / std_dev;
+                }
+            } else if (local_do_rescale) {
+                const __m512 v_rescale = _mm512_set1_ps(rescale_factor);
+                for (; i < vectorized_count; i += simd_width * unroll_factor) {
+                    _mm_prefetch(reinterpret_cast<const char*>(p_src + i + 64), _MM_HINT_T0);
+                    
+                    __m512 f32_vec0 = _mm512_cvtepi32_ps(_mm512_cvtepu8_epi32(_mm_loadu_si128(reinterpret_cast<const __m128i*>(p_src + i))));
+                    __m512 f32_vec1 = _mm512_cvtepi32_ps(_mm512_cvtepu8_epi32(_mm_loadu_si128(reinterpret_cast<const __m128i*>(p_src + i + 16))));
+                    __m512 f32_vec2 = _mm512_cvtepi32_ps(_mm512_cvtepu8_epi32(_mm_loadu_si128(reinterpret_cast<const __m128i*>(p_src + i + 32))));
+                    __m512 f32_vec3 = _mm512_cvtepi32_ps(_mm512_cvtepu8_epi32(_mm_loadu_si128(reinterpret_cast<const __m128i*>(p_src + i + 48))));
+                    
+                    _mm512_storeu_ps(p_dst + i, _mm512_mul_ps(f32_vec0, v_rescale));
+                    _mm512_storeu_ps(p_dst + i + 16, _mm512_mul_ps(f32_vec1, v_rescale));
+                    _mm512_storeu_ps(p_dst + i + 32, _mm512_mul_ps(f32_vec2, v_rescale));
+                    _mm512_storeu_ps(p_dst + i + 48, _mm512_mul_ps(f32_vec3, v_rescale));
+                }
+                for (; i + simd_width <= total_pixels; i += simd_width) {
+                    __m512 f32_vec = _mm512_cvtepi32_ps(_mm512_cvtepu8_epi32(_mm_loadu_si128(reinterpret_cast<const __m128i*>(p_src + i))));
+                    _mm512_storeu_ps(p_dst + i, _mm512_mul_ps(f32_vec, v_rescale));
+                }
+                for (; i < total_pixels; ++i) {
+                    p_dst[i] = static_cast<float>(p_src[i]) * rescale_factor;
+                }
+            } else {
+                convert_uint8_to_float_avx512(p_src, p_dst, total_pixels);
+            }
+        }
+    }
+
 } // namespace avx512
 } // namespace imgproc

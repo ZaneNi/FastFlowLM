@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
     std::string exe_dir = utils::get_executable_directory();
     std::string config_path = exe_dir + "/model_list.json";
     // Get the models directory from environment variable or default
-    std::string models_dir = get_models_directory();
+    std::string models_dir = utils::get_models_directory();
 
     
     model_list availble_models(config_path, models_dir);
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (parsed_args.port_requested) {
-        std::cout << "Default server port: " << get_server_port(-1) << std::endl;
+        std::cout << "Default server port: " << utils::get_server_port(-1) << std::endl;
         return 0;
     }
 
@@ -309,7 +309,7 @@ int main(int argc, char* argv[]) {
         } else if (command == "serve") {
             check_and_notify_new_version();
             // Create the server
-            int port = get_server_port(user_port);
+            int port = utils::get_server_port(user_port);
             auto server = create_lm_server(availble_models, downloader, tag, asr, embed, user_host, port, ctx_length, cors, preemption);
             server->set_max_connections(max_socket_connections);           // Allow up to 10 concurrent connections
             server->set_io_threads(10);          // Allow up to 5 io threads

@@ -15,7 +15,7 @@
 #include <filesystem>
 #include "utils/utils.hpp"
 
-#define __FLM_VERSION__ "0.9.32"
+#define __FLM_VERSION__ "0.9.33"
 
 /// \note This class is used to manage the model list.
 class model_list {

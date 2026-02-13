@@ -158,6 +158,17 @@ target_link_libraries(flm PUBLIC
     xrt_coreutil
     q4_npu_eXpress
     llama_npu
+    qwen2_npu
+    qwen2vl_npu
+    qwen3_npu
+    qwen3vl_npu
+    gemma_npu
+    gemma_text_npu
+    gpt_oss_npu
+    whisper_npu
+    gemma_embedding
+    lfm2_npu
+    phi4_npu
     dequant
     gemm
     lm_head

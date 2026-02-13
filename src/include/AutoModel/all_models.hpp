@@ -7,16 +7,16 @@
 #pragma once
 
 #include "modeling_llama3.hpp"
-#ifndef FASTFLOWLM_LINUX_LIMITED_MODELS
 #include "modeling_gemma3.hpp"
 #include "modeling_gemma3_text.hpp"
 #include "modeling_qwen3.hpp"
 #include "modeling_gpt_oss.hpp"
-#include "modeling_qwen3vl.hpp"
 #include "modeling_lfm2.hpp"
 #include "modeling_phi4.hpp"
 #include "modeling_qwen2.hpp"
-#endif
+#include "modeling_qwen3.hpp"
+#include "modeling_qwen2vl.hpp"
+#include "modeling_qwen3vl.hpp"
 #include "model_list.hpp"
 #include "nlohmann/json.hpp"
 
@@ -24,6 +24,7 @@ typedef enum {
     llama3,
     deepseek_r1,
     qwen2,
+    qwen2vl,
     qwen3,
     qwen3_it,
     qwen3_tk,
@@ -54,6 +55,7 @@ inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const s
         {"gpt-oss", SupportedModelFamily::gpt_oss},
         {"lfm2", SupportedModelFamily::lfm2},
         {"lfm2.5-tk", SupportedModelFamily::lfm2_5_tk},
+        {"qwen2vl", SupportedModelFamily::qwen2vl},
         {"phi4", SupportedModelFamily::phi4},
         {"whisper-v3", SupportedModelFamily::error_whiper},
         {"embed-gemma", SupportedModelFamily::error_embedding}
@@ -72,12 +74,14 @@ inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const s
         case SupportedModelFamily::llama3:
             auto_chat_engine = std::make_unique<Llama3>(npu_device_inst);
             break;
-#ifndef FASTFLOWLM_LINUX_LIMITED_MODELS
         case SupportedModelFamily::deepseek_r1:
             auto_chat_engine = std::make_unique<DeepSeek_r1_8b>(npu_device_inst);
             break;
         case SupportedModelFamily::qwen2:
             auto_chat_engine = std::make_unique<Qwen2>(npu_device_inst);
+            break;
+        case SupportedModelFamily::qwen2vl:
+            auto_chat_engine = std::make_unique<Qwen2VL>(npu_device_inst);
             break;
         case SupportedModelFamily::qwen3:
             auto_chat_engine = std::make_unique<Qwen3>(npu_device_inst);
@@ -109,7 +113,6 @@ inline std::pair<std::string, std::unique_ptr<AutoModel>> get_auto_model(const s
         case SupportedModelFamily::phi4:
             auto_chat_engine = std::make_unique<Phi4>(npu_device_inst);
             break;
-#endif
         case SupportedModelFamily::error_whiper:
         case SupportedModelFamily::error_embedding:
         default:
