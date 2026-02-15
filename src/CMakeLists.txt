@@ -268,6 +268,9 @@ else()
             target_link_libraries(flm PUBLIC ${READLINE_NCURSES_LIBRARY})
         endif()
     endif()
+
+    # Link with dl library for dlopen() support (used for preloading bundled libraries)
+    target_link_libraries(flm PUBLIC dl)
 endif()
 
 # ———————————————————————————————————————————————
