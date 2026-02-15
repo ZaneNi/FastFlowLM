@@ -25,10 +25,14 @@ This application requires the **Microsoft Visual C++ Redistributable for Visual 
    choco install vcredist140
    ```
 
+
 ### Building with Static Linking (Recommended)
 To avoid the MSVCP140.dll dependency entirely, build with static linking:
 
 ```bash
+# Download submodule (tokenizer)
+git submodule update --init --recursive
+
 # Clean previous build
 rm -rf build/
 

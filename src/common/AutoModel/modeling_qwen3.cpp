@@ -53,7 +53,8 @@ std::string Qwen3::apply_chat_template(nlohmann::ordered_json& messages, nlohman
     inputs.messages = messages;
     inputs.extra_context = this->extra_context;
     inputs.extra_context["enable_thinking"] = this->enable_think;
-    inputs.tools = tools;
+    if (!tools.empty())
+        inputs.tools = tools;
     return this->chat_tmpl->apply(inputs);
 }
 
@@ -210,7 +211,8 @@ std::string Qwen3_IT::apply_chat_template(nlohmann::ordered_json& messages, nloh
     inputs.add_generation_prompt = true;
     inputs.messages = messages;
     inputs.extra_context = this->extra_context;
-    inputs.tools = tools;
+    if (!tools.empty())
+        inputs.tools = tools;
     return this->chat_tmpl->apply(inputs);
 }
 

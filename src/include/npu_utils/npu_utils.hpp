@@ -231,6 +231,28 @@ public:
         LOG_VERBOSE(2, "ending state: " << this->cmd_state_map[state]);
         return state;
     }
+
+    
+    ///@brief Operator() for running the kernel
+    ///@param args arguments, shall be the buffers with real bo
+    ///@see xrt::run
+    template<typename... BoArgs>
+    ert_cmd_state safe_run(BoArgs&&... args){
+        if (this->module_valid == false || this->ctrl_seq->sequence_valid() == false || this->module_version != this->ctrl_seq->sequence_version()) {
+            this->_setup_kernel();
+        }
+        std::array<bytes*, sizeof...(BoArgs)> bo_args = { &args... };
+        for (size_t i = 0; i < sizeof...(args); i++){
+            bo_args[i]->sync_to_device();
+        }
+        auto run = this->kernel->operator()(3, 0, 0, args.bo()...);
+        ert_cmd_state state = run.wait();
+        for (size_t i = 0; i < sizeof...(args); i++){
+            bo_args[i]->sync_from_device();
+        }
+        LOG_VERBOSE(2, "ending state: " << this->cmd_state_map[state]);
+        return state;
+    }
     
     ///@brief Create a run object
     ///@param args arguments, shall be the buffers with real bo

@@ -136,7 +136,7 @@ inline __m256i f32o_bf16_512(__m512 fp32_vals) {
 /// \param str the UTF-8 string
 /// \return the wide string
 /// \note Usage: std::wstring wstr = utf8_to_wstring(str);
-#ifdef _IS_WINDOWS_
+#ifdef __WINDOWS__
 inline std::wstring utf8_to_wstring(const std::string& str) {
     int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), nullptr, 0);
     std::wstring wstr(size_needed, 0);

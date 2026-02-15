@@ -132,7 +132,7 @@ if(WIN32)
         # Handle legacy stdio functions
         _CRT_SECURE_NO_WARNINGS
         _CRT_NONSTDC_NO_DEPRECATE
-        _IS_WINDOWS_
+        __WINDOWS__
     )
 endif()
 
@@ -156,7 +156,6 @@ endif()
 # Link your custom libraries (these may still be DLLs if no static versions available)
 target_link_libraries(flm PUBLIC
     xrt_coreutil
-    aiebu
     q4_npu_eXpress
     llama_npu
     qwen2_npu
@@ -178,17 +177,11 @@ target_link_libraries(flm PUBLIC
 
 if(WIN32)
     target_link_libraries(flm PUBLIC
-        qwen2_npu
-        qwen_npu
-        gemma_npu
-        gemma_text_npu
-        gpt_oss_npu
-        whisper_npu
-        qwen3vl_npu
-        gemma_embedding
-        lfm2_npu
-        phi4_npu
-        npu_utils
+        aiebu_static
+    )
+else()
+    target_link_libraries(flm PUBLIC
+        aiebu
     )
 endif()
 
