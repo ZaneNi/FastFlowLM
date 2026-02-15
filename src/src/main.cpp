@@ -16,23 +16,52 @@
 #include <string>
 #include <thread>
 #include <atomic>
-#include <windows.h>
 #include <filesystem>
-#include <shlobj.h>
 #include <cstdlib>
+#ifdef _WIN32
+#include <windows.h>
+#include <shlobj.h>
 #include <shellapi.h>
+#endif
 #include "utils/vm_args.hpp"
 #include <boost/program_options.hpp>
 #include "benchmarking.hpp"
 
 #include "AutoModel/automodel.hpp"
 
+#ifndef _WIN32
+#include <dlfcn.h>
+#endif
+
 // Global variables
 ///@brief should_exit is used to control the server thread
 std::atomic<bool> should_exit(false);
 
+#ifndef _WIN32
+///@brief Preload critical XRT libraries from the executable directory
+///@details This ensures that dlopen() calls within libraries find the bundled versions
+///@note Only on Linux/Unix; Windows handles DLL loading differently
+void preload_bundled_libraries() {
+    std::string exe_dir = utils::get_executable_directory();
+
+    const std::vector<std::string> libraries = {
+        "libxrt_core.so.2",           // Core - no dependencies
+        "libxrt_coreutil.so.2",       // Depends on core
+        "libxrt_driver_xdna.so.2",    // Driver
+    };
+
+    // Try to load the library with RTLD_GLOBAL so symbols are available to dependent libraries
+    // Don't care about failures
+    for (const auto& lib : libraries) {
+        std::string lib_path = exe_dir + "/" + lib;
+        void* handle = dlopen(lib_path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+    }
+}
+#endif
 
 
+
+#ifdef _WIN32
 ///@brief get_unicode_command_line_args gets Unicode command line arguments
 ///@param argc_out reference to store argument count
 ///@return vector of UTF-8 encoded argument strings
@@ -71,16 +100,21 @@ std::vector<std::string> get_unicode_command_line_args(int& argc_out) {
     
     return args;
 }
+#endif
 
 ///@brief get_user_documents_directory gets the user's Documents directory
 ///@return the user's Documents directory path
 std::string get_user_documents_directory() {
+#ifdef _WIN32
     char buffer[MAX_PATH];
     if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, 0, buffer))) {
         return std::string(buffer);
     }
     // Fallback to executable directory if Documents folder cannot be found
     return utils::get_executable_directory();
+#else
+    return utils::get_user_documents_directory();
+#endif
 }
 
 ///@brief ensure_models_directory creates the models directory if it doesn't exist
@@ -115,13 +149,84 @@ void handle_user_input() {
 std::unique_ptr<WebServer> create_lm_server(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, bool embed, std::string host, int port, int ctx_length, bool cors, bool preemption);
 
 
+///@brief get_server_port gets the server port from environment variable FLM_SERVE_PORT
+///@return the server port, default is 52625 if environment variable is not set
+int get_server_port(int user_port) {
+    if (user_port > 0 && user_port <= 65535) {
+        return user_port;
+    }
+    else {
+#ifdef _WIN32
+        char* port_env = nullptr;
+        size_t len = 0;
+        if (_dupenv_s(&port_env, &len, "FLM_SERVE_PORT") == 0 && port_env != nullptr) {
+            try {
+                int port = std::stoi(port_env);
+                free(port_env);
+                if (port > 0 && port <= 65535) {
+                    return port;
+                }
+            }
+            catch (const std::exception&) {
+                free(port_env);
+                // Invalid port number, use default
+            }
+        }
+#else
+        const char* port_env = std::getenv("FLM_SERVE_PORT");
+        if (port_env && *port_env) {
+            try {
+                int port = std::stoi(port_env);
+                if (port > 0 && port <= 65535) {
+                    return port;
+                }
+            }
+            catch (const std::exception&) {
+                // Invalid port number, use default
+            }
+        }
+#endif
+    }
+
+    return 52625; // Default port
+}
+
+///@brief get_models_directory gets the models directory from environment variable or defaults to Documents
+///@return the models directory path
+std::string get_models_directory() {
+#ifdef _WIN32
+    char* model_path_env = nullptr;
+    size_t len = 0;
+    if (_dupenv_s(&model_path_env, &len, "FLM_MODEL_PATH") == 0 && model_path_env != nullptr) {
+        std::string custom_path(model_path_env);
+        free(model_path_env);
+        if (!custom_path.empty()) {
+            return custom_path;
+        }
+    }
+#else
+    const char* model_path_env = std::getenv("FLM_MODEL_PATH");
+    if (model_path_env && *model_path_env) {
+        return std::string(model_path_env);
+    }
+#endif
+    // Fallback to Documents directory if environment variable is not set
+    std::string documents_dir = get_user_documents_directory();
+    return documents_dir + "/flm/models";
+}
+
 ///@brief main function
 ///@param argc the number of arguments
 ///@param argv the arguments
 ///@return the exit code
 int main(int argc, char* argv[]) {
+#ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
+#else
+    // Preload bundled libraries from executable directory
+    preload_bundled_libraries();
+#endif
     
     // Parse command line arguments using Boost Program Options
     arg_utils::ParsedArgs parsed_args;
@@ -171,7 +276,9 @@ int main(int argc, char* argv[]) {
     bool embed = parsed_args.embed;
 
     // Set process priority to high for better performance
+#ifdef _WIN32
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+#endif
     
     // Handle special case for serve command - use default tag if none provided
     if (command == "serve" && tag.empty()) {
@@ -189,9 +296,14 @@ int main(int argc, char* argv[]) {
         // Configure AMD XRT for the specified power mode
         if (power_mode == "default" || power_mode == "powersaver" || power_mode == "balanced" || 
             power_mode == "performance" || power_mode == "turbo") {
+#ifdef _WIN32
             std::string xrt_cmd = "cd \"C:\\Windows\\System32\\AMD\" && .\\xrt-smi.exe configure --pmode " + power_mode + " > NUL 2>&1";
             header_print("FLM", "Configuring NPU Power Mode to " + power_mode + (got_power_mode ? "" : " (flm default)"));
-            system(xrt_cmd.c_str());
+            (void)system(xrt_cmd.c_str());
+#else
+            (void)got_power_mode;
+            header_print("FLM", "Power mode configuration is Windows-only; continuing on this platform.");
+#endif
         }
         else{
             std::cout << "Invalid power mode: " << power_mode << std::endl;

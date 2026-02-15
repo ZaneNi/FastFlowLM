@@ -6,9 +6,9 @@
 /// \note This is a header file for the all_models class
 #pragma once
 
+#include "modeling_llama3.hpp"
 #include "modeling_gemma3.hpp"
 #include "modeling_gemma3_text.hpp"
-#include "modeling_llama3.hpp"
 #include "modeling_qwen3.hpp"
 #include "modeling_gpt_oss.hpp"
 #include "modeling_lfm2.hpp"
