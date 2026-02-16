@@ -1,7 +1,9 @@
 #include <iostream>
 #include <cmath>
 #define NOMINMAX
+#ifdef __WINDOWS__
 #include <windows.h>
+#endif
 #include "utils/utils.hpp"
 #include "utils/vm_args.hpp"
 #include "model_list.hpp"
@@ -48,7 +50,7 @@ int main(int argc, char* argv[]) {
 
     Whisper whisper(&npu_device_global);
 
-    std::string audio_path = "C:\\Users\\alfred\\Downloads\\nvidia.mp3";
+    std::string audio_path = "../../../tb_files/nvidia.mp3";
 
     whisper.load_model(model_path, model_info, preemption);
     header_print("info", "Loading audio...");

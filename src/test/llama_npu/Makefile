@@ -55,8 +55,8 @@ LDFLAGS += -Wl,-rpath,/home/alfred/mlir-aie/xdna-driver/xrt/build/Release/opt/xi
 LDFLAGS += -lxrt_coreutil -laiebu
 LDFLAGS += -lboost_program_options -lboost_filesystem
 LDFLAGS += -L$(LIB_DIR) -Wl,-rpath,$(LIB_DIR)
-LDFLAGS += -L../../build/lib
-LDFLAGS += -L../../build/tokenizer/lib
+LDFLAGS += -L../../lib
+LDFLAGS += -L../../tokenizer/lib
 LDFLAGS += -ltokenizers_cpp -ltokenizers_c -l sentencepiece
 LDFLAGS += -lllama_npu -ldequant -lgemm -llm_head -lq4_npu_eXpress -lmha
 

@@ -68,7 +68,11 @@ class LM_Config{
         void from_pretrained(std::string model_name){
             // #define DEV_BUILD
             #ifdef DEV_BUILD
-                this->exec_path = "C:\\Users\\alfred\\Projects\\FastFlowLM\\xclbins";
+            #ifdef __WINDOWS__
+                this->exec_path = "..\\..\\";
+            #else
+                this->exec_path = "../../../";
+            #endif
             #else
                 this->exec_path = utils::get_executable_directory();
             #endif
@@ -172,7 +176,11 @@ public:
         this->exec_path = utils::get_executable_directory();
         this->model_path = model_name;
         #ifdef DEV_BUILD
-            this->exec_path = "C:\\Users\\alfred\\Projects\\FastFlowLM\\xclbins";
+        #ifdef __WINDOWS__
+            this->exec_path = "..\\..\\";
+        #else
+            this->exec_path = "../../../";
+        #endif
         #else
             this->exec_path = utils::get_executable_directory();
         #endif
