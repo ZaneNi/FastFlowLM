@@ -13,6 +13,10 @@
 /************              Qwen3VL family            **************/
 Qwen3VL::Qwen3VL(xrt::device* npu_device_inst) : AutoModel(npu_device_inst, "Qwen3VL") {}
 
+void Qwen3VL::set_special_flags(int resize) {
+    this->resize = resize;
+}
+
 void Qwen3VL::load_model(std::string model_path, json model_info, int default_context_length, bool enable_preemption) {
     this->_shared_load_model(model_path, model_info, default_context_length, enable_preemption);
     
@@ -122,7 +126,7 @@ bool Qwen3VL::insert(chat_meta_info_t& meta_info, lm_uniform_input_t& input) {
                         total_images++;
                     }
                     qwen3vl_image_t image = this->load_image_base64(img_str);
-                    preprocess_image(image, image_payload._data__processed);
+                    preprocess_image(image, image_payload._data__processed, resize);
                     image_payload.images.push_back(image);
                     image_payload.num_images++;
                 }
