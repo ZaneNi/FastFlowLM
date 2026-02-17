@@ -69,7 +69,7 @@ class LM_Config{
             // #define DEV_BUILD
             #ifdef DEV_BUILD
             #ifdef __WINDOWS__
-                this->exec_path = "..\\..\\";
+                this->exec_path = "..\\..\\..\\";
             #else
                 this->exec_path = "../../../";
             #endif
@@ -138,9 +138,6 @@ class LM_Config{
             assert(this->num_attention_heads > 0);
             assert(this->num_hidden_layers > 0);
             assert(this->num_key_value_heads > 0);
-            assert(this->rms_norm_eps > 0);
-            assert(this->addr_qk > 0);
-            assert(this->addr_kv > 0);
             this->vision_model_weight = this->model_path + "/" + this->vision_model_weight;
         }
         std::string _str(){
@@ -177,7 +174,7 @@ public:
         this->model_path = model_name;
         #ifdef DEV_BUILD
         #ifdef __WINDOWS__
-            this->exec_path = "..\\..\\";
+            this->exec_path = "..\\..\\..\\";
         #else
             this->exec_path = "../../../";
         #endif

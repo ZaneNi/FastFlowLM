@@ -246,10 +246,6 @@ std::pair<std::string, std::string> Whisper::generate(whisper_task_type_t task, 
         l_this_round = std::min(WINDOW_SAMPLES, length - current_idx);
         l_this_round = std::max(l_this_round, 0);
         
-        // if (length - current_idx < WINDOW_SAMPLES){
-        //     last_chunk = true;
-        // }
-        // os << "\n" << std::flush;
     }
     return std::make_pair(result, langmap::to_language_name(language_detected));
 }

@@ -24,6 +24,7 @@ CXX_FLAGS += -I../../include
 CXX_FLAGS += -I/opt/xilinx/xrt/include
 CXX_FLAGS += -MMD -MP
 CXX_FLAGS += -DDEV_BUILD
+CXX_FLAGS += -fopenmp
 
 LDFLAGS += -L/opt/xilinx/xrt/lib
 LDFLAGS += -Wl,-rpath,/opt/xilinx/xrt/lib
