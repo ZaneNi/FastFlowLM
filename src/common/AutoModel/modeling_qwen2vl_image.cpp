@@ -517,8 +517,7 @@ void Qwen2VL::preprocess_image(qwen2vl_image_t& image, std::vector<bf16> &pixel_
     int resized_height; 
     int resized_width;    
 
-    std::cout << "height " << height << " width " << width << std::endl;
-
+    //std::cout << "height " << height << " width " << width << std::endl;
 
     int target_longest_edge = (resize == 1) ? 1080 : (resize == 2) ? 2560 : 0;
 
@@ -541,7 +540,7 @@ void Qwen2VL::preprocess_image(qwen2vl_image_t& image, std::vector<bf16> &pixel_
         QWEN2_SHORTEST_EDGE,
         QWEN2_LONGEST_EDGE
     );
-     std::cout << "resized_height "<< resized_height << " resized_width " << resized_width <<std::endl;
+     //std::cout << "resized_height "<< resized_height << " resized_width " << resized_width <<std::endl;
 
     // Use non-optimized path for consistent results across platforms
     auto resize_image =  imgproc::avx512::resize_bicubic_antialias_rgb_planar_avx512(

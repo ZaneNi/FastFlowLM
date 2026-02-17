@@ -517,7 +517,7 @@ void Qwen3VL::preprocess_image(qwen3vl_image_t& image, std::vector<bf16> &pixel_
     int resized_height; 
     int resized_width;   
 
-    std::cout << "height "<< height << " width " << width <<std::endl;
+    //std::cout << "height "<< height << " width " << width <<std::endl;
 
     int target_longest_edge = (resize == 1) ? 1080 : (resize == 2) ? 2560 : 0;
 
@@ -541,7 +541,7 @@ void Qwen3VL::preprocess_image(qwen3vl_image_t& image, std::vector<bf16> &pixel_
         QWEN3_LONGEST_EDGE
     );
 
-    std::cout << "resized_height " << resized_height << " resized_width " << resized_width << std::endl;
+    //std::cout << "resized_height " << resized_height << " resized_width " << resized_width << std::endl;
 
     // Cache size calculations for efficiency
     const uint32_t single_frame_size = resized_height * resized_width * channels;
