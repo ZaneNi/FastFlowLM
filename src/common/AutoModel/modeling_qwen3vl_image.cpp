@@ -508,43 +508,33 @@ void Qwen3VL::smart_resize(
 ///@note: Converts uint8 image to BF16 format, data is already in (3, H, W) CHW layout
 ///@param: image: the image to preprocess (already in CHW format)
 ///@return: the preprocessed image in BF16 format
-void Qwen3VL::preprocess_image(qwen3vl_image_t& image, std::vector<bf16> &pixel_values, int resize) {
+void Qwen3VL::preprocess_image(qwen3vl_image_t& image, std::vector<bf16> &pixel_values) {
     const int width = image.width;
     const int height = image.height;
     const int channels = 3; // RGB
+    int downscaled_height;
+    int downscaled_width;
     int resized_height; 
     int resized_width;   
-    int aresized_height;
-    int aresized_width;
 
     std::cout << "height "<< height << " width " << width <<std::endl;
 
-    // do same ratio resize here
-    if (resize == -1) {
-        // the longer side turn to 1080
-        // the other side the same radio decrese
-        const float target_longest_edge = 1080.0f;
-        float scale = target_longest_edge / std::max(height, width);
+    int target_longest_edge = (resize == 1) ? 1080 : (resize == 2) ? 2560 : 0;
 
-        // Apply scale
-        int raw_new_h = static_cast<int>(height * scale);
-        int raw_new_w = static_cast<int>(width * scale);
-
-        // CRITICAL: Align to QWEN3_PATCH_SIZE. 
-        // If we don't align, (resized_h / patch_size) will truncate, losing data.
-        // We round to the nearest multiple of the patch size.
-        aresized_height = ((raw_new_h + QWEN3_PATCH_SIZE / 2) / QWEN3_PATCH_SIZE) * QWEN3_PATCH_SIZE;
-        aresized_width = ((raw_new_w + QWEN3_PATCH_SIZE / 2) / QWEN3_PATCH_SIZE) * QWEN3_PATCH_SIZE;
-
-        // Ensure we explicitly enforce the minimum size (1 patch) to avoid 0 dimension
-        aresized_height = std::max(resized_height, (int)QWEN3_PATCH_SIZE);
-        aresized_width = std::max(resized_width, (int)QWEN3_PATCH_SIZE);
-
+    if (target_longest_edge > 0) {
+        float scale = target_longest_edge / static_cast<float>(std::max(height, width));
+        scale = std::min(scale, 1.0f); 
+        downscaled_height = static_cast<int>(height * scale);
+        downscaled_width = static_cast<int>(width * scale);
+    }
+    else {
+        downscaled_height = height;
+        downscaled_width = width;
     }
 
     // do the automatically resizing in here 
     smart_resize(
-        aresized_height, aresized_width,
+        downscaled_height, downscaled_width,
         resized_height, resized_width,
         QWEN3_PATCH_SIZE * QWEN3_IMAGE_MERGE_SIZE,
         QWEN3_SHORTEST_EDGE,

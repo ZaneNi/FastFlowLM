@@ -126,7 +126,7 @@ bool Qwen3VL::insert(chat_meta_info_t& meta_info, lm_uniform_input_t& input) {
                         total_images++;
                     }
                     qwen3vl_image_t image = this->load_image_base64(img_str);
-                    preprocess_image(image, image_payload._data__processed, resize);
+                    preprocess_image(image, image_payload._data__processed);
                     image_payload.images.push_back(image);
                     image_payload.num_images++;
                 }

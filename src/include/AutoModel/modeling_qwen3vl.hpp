@@ -57,7 +57,7 @@ private:
     int min_pixels,
     int max_pixels);
     
-    void preprocess_image(qwen3vl_image_t& image, std::vector<bf16> &pixel_values, int resize = -1);
+    void preprocess_image(qwen3vl_image_t& image, std::vector<bf16> &pixel_values);
 
 public:
     Qwen3VL(xrt::device* npu_device_inst);

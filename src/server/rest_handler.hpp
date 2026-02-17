@@ -31,7 +31,7 @@ using StreamResponseCallback = std::function<void(const json&, bool)>; // data, 
 
 class RestHandler {
 public:
-    RestHandler(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, bool embed, int ctx_length = -1, int resize = -1, bool preemption = false);
+    RestHandler(model_list& models, ModelDownloader& downloader, const std::string& default_tag, bool asr, bool embed, int ctx_length = -1, int resize = 0, bool preemption = false);
     ~RestHandler();
 
     void handle_show(const json& request,
