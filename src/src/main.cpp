@@ -566,9 +566,10 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Check if the commands and args valid
-    stable_stack = sanity_check_npu_stack(parsed_args.command != "validate", parsed_args.command == "validate" && parsed_args.json_output);
-    if (parsed_args.command == "validate")
+    if (parsed_args.command == "validate") {
+        stable_stack = sanity_check_npu_stack(parsed_args.command != "validate", parsed_args.command == "validate" && parsed_args.json_output);
         return stable_stack ? 0 : 1;
+    }
 
     if (parsed_args.command == "run" || parsed_args.command == "serve" || parsed_args.command == "pull" || parsed_args.command == "remove" || parsed_args.command == "bench") {
       if (parsed_args.model_tag != "model-faker" && (!availble_models.is_model_supported(parsed_args.model_tag))) {
@@ -710,6 +711,7 @@ int main(int argc, char* argv[]) {
                     bool is_present = downloader.is_model_downloaded(model["name"].get<std::string>(), parsed_args.sub_process_mode);
                     if ((parsed_args.list_filter == "installed") == is_present || parsed_args.list_filter == "all") {
                         nlohmann::json model_entry = model;
+                        model_entry["installed"] = is_present ? true : false;
                         output_json["models"].push_back(model_entry);
                     }
                 }
