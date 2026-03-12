@@ -24,6 +24,11 @@ class LM_Config{
         u32 num_attention_heads;
         u32 num_hidden_layers;
         u32 num_key_value_heads;
+        u32 linear_conv_kernel_dim;
+        u32 linear_key_head_dim;
+        u32 linear_num_key_heads;
+        u32 linear_num_value_heads;
+        u32 linear_value_head_dim;
         u32 pretraining_tp;
         f32 rms_norm_eps;
         f32 rope_theta;
@@ -94,6 +99,12 @@ class LM_Config{
             JSON_GET(this->hidden_act, this->_json_config, "hidden_act", "", std::string);
             JSON_GET(this->intermediate_size, this->_json_config, "intermediate_size", 0, u32);
             JSON_GET(this->num_attention_heads, this->_json_config, "num_attention_heads", 0, u32);
+            JSON_GET(this->linear_conv_kernel_dim, this->_json_config, "linear_conv_kernel_dim", 0, u32);
+            JSON_GET(this->linear_key_head_dim, this->_json_config, "linear_key_head_dim", 0, u32);
+            JSON_GET(this->linear_num_key_heads, this->_json_config, "linear_num_key_heads", 0, u32);
+            JSON_GET(this->linear_num_value_heads, this->_json_config, "linear_num_value_heads", 0, u32);
+            JSON_GET(this->linear_value_head_dim, this->_json_config, "linear_value_head_dim", 0, u32);
+            
             JSON_GET(this->num_hidden_layers, this->_json_config, "num_hidden_layers", 0, u32);
             JSON_GET(this->num_key_value_heads, this->_json_config, "num_key_value_heads", 0, u32);
             JSON_GET(this->pretraining_tp, this->_json_config, "pretraining_tp", 0, u32);

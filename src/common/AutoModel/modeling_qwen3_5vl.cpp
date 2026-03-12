@@ -28,12 +28,13 @@ void Qwen3_5VL::load_model(std::string model_path, json model_info, int default_
     this->sampler.reset();
 
     sampler_config config;
-    config.top_k = 40;
-    config.top_p = 0.9;
-    config.min_p = 0.1;
+    config.top_k = 20;
+    config.top_p = 0.95;
+    config.min_p = 0.0;
     config.temperature = 0.8;
     config.rep_penalty = 1.05;
     config.freq_penalty = 1.05;
+    config.pre_penalty = 1.5f;
 
     this->set_sampler(config);
     for (size_t i = 0; i < PROFILER_TYPE_NUM; i++) {
@@ -185,6 +186,7 @@ bool Qwen3_5VL::insert(chat_meta_info_t& meta_info, lm_uniform_input_t& input) {
 }
 
 std::string Qwen3_5VL::generate(chat_meta_info_t& meta_info, int length_limit, std::ostream& os, std::function<bool()> is_cancelled) {
+    std::cout << "<think>\n" << std::flush;
     return this->_shared_generate(meta_info, length_limit, os, is_cancelled);
 }
 
@@ -192,6 +194,7 @@ std::string Qwen3_5VL::generate_with_prompt(chat_meta_info_t& meta_info, lm_unif
     if (!this->insert(meta_info, input)) {
         return "";
     }
+    std::cout << "<think>\n" << std::flush;
     return this->_shared_generate(meta_info, length_limit, os);
 }
 
