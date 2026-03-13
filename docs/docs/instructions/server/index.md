@@ -98,3 +98,14 @@ flm serve --cors 0
 
 > ⚠️ **Default:** CORS is **enabled**.  
 > 🔒 **Security tip:** Disable CORS (or restrict at your proxy) if your server is exposed beyond localhost (127.0.0.1).
+
+
+## Suppress Logs for Higher-Level Applications
+
+When FLM is run as a subprocess inside another application, use quiet mode to reduce FLM log output:
+
+```shell
+flm serve --quiet
+```
+
+This keeps the parent application's logs cleaner and easier to read.
