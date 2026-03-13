@@ -47,6 +47,12 @@
   ],
   "buildPresets": [
     {
+      "name": "linux-default",
+      "displayName": "Linux Default Build",
+      "description": "Build Linux preset in Release",
+      "configurePreset": "linux-default"
+    },
+    {
       "name": "windows-default",
       "displayName": "Windows Default Build",
       "description": "Build Windows preset in Release with parallel jobs",
