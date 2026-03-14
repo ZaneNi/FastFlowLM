@@ -69,6 +69,36 @@ flm pull llama3.2:3b --force
 
 > ⚠️ Use `--force` **only if the model file is corrupted** (e.g., incomplete download). Proceed with caution.
 
+#### 📁 Default Model Storage Location
+
+| Platform | Default Path |
+|----------|-------------|
+| Windows  | `C:\Users\username\Documents\flm\models` |
+| Linux    | `~/.config/flm/models` |
+
+#### 🔧 Changing the Model Storage Path
+
+You can override the default location by setting the `FLM_MODEL_PATH` environment variable.
+
+**Windows** — Update the existing system environment variable:
+1. Open **Start** and search for **"Edit the system environment variables"**.
+2. Click **Environment Variables…**.
+3. Under **System variables**, find `FLM_MODEL_PATH`, select it, and click **Edit…**.
+4. Update the value to your desired path (e.g., `D:\models\flm`).
+5. Click **OK** and restart any open terminals for the change to take effect.
+
+**Linux** — Set temporarily for the current shell session:
+```shell
+export FLM_MODEL_PATH="/your/custom/path"
+```
+
+To make the change permanent, add the line above to your `~/.bashrc`, then reload it:
+```shell
+echo 'export FLM_MODEL_PATH="/your/custom/path"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+
 ---
 
 ### 📦 List Supported and Downloaded Models
