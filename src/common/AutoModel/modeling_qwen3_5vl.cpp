@@ -256,9 +256,29 @@ NonStreamResult Qwen3_5VL::parse_nstream_content(const std::string response_text
 StreamResult Qwen3_5VL::parse_stream_content(const std::string content) {
     std::string tool_start_tag = "<tool_call>";
     std::string tool_end_tag = "</tool_call>";
+    std::string think_start_tag = "<think>";
+    std::string think_end_tag = "</think>";
 
     StreamResult result;
     result.type = StreamEventType::CONTENT;
+
+    if (!is_in_tool_block_ && content.find(think_start_tag) != std::string::npos) {
+        current_mode_ = StreamEventType::REASONING;
+        result.type = StreamEventType::WAITING;
+        return result;
+    }
+
+    if (!is_in_tool_block_ && content.find(think_end_tag) != std::string::npos) {
+        current_mode_ = StreamEventType::CONTENT;
+        result.type = StreamEventType::WAITING;
+        return result;
+    }
+
+    if (!is_in_tool_block_ && current_mode_ == StreamEventType::REASONING) {
+        result.type = StreamEventType::REASONING;
+        result.content = content;
+        return result;
+    }
 
     if (content.find(tool_start_tag) != std::string::npos) {
         is_in_tool_block_ = true;
@@ -267,28 +287,52 @@ StreamResult Qwen3_5VL::parse_stream_content(const std::string content) {
         return result;
     }
 
-    if (content.find("</tool_call>") != std::string::npos) {
+    if (content.find(tool_end_tag) != std::string::npos) {
         is_in_tool_block_ = false;
 
         try {
-            auto j = nlohmann::json::parse(tool_name_);
+            const std::string& block = tool_name_;
+
+            // Parse function name from <function=NAME>
+            std::string func_open = "<function=";
+            size_t func_start = block.find(func_open);
+            if (func_start != std::string::npos) {
+                func_start += func_open.length();
+                size_t func_end = block.find(">", func_start);
+                if (func_end != std::string::npos) {
+                    result.tool_name = block.substr(func_start, func_end - func_start);
+                }
+            }
+
+            // Parse parameters from <parameter=NAME>\nVALUE\n</parameter>
+            nlohmann::json args = nlohmann::json::object();
+            std::string param_open = "<parameter=";
+            std::string param_close = "</parameter>";
+            size_t search_pos = 0;
+            while (true) {
+                size_t p_start = block.find(param_open, search_pos);
+                if (p_start == std::string::npos) break;
+                p_start += param_open.length();
+                size_t p_name_end = block.find(">", p_start);
+                if (p_name_end == std::string::npos) break;
+                std::string param_name = block.substr(p_start, p_name_end - p_start);
+
+                size_t val_start = p_name_end + 1;
+                if (val_start < block.size() && block[val_start] == '\n') val_start++;
+
+                size_t val_end = block.find(param_close, val_start);
+                if (val_end == std::string::npos) break;
+
+                std::string param_value = block.substr(val_start, val_end - val_start);
+                if (!param_value.empty() && param_value.back() == '\n') param_value.pop_back();
+
+                args[param_name] = param_value;
+                search_pos = val_end + param_close.length();
+            }
 
             result.type = StreamEventType::TOOL_DONE;
-            //result.tool_id = generate_id();
             result.tool_id = "call_" + std::to_string(std::time(nullptr));
-
-            if (j.contains("name")) {
-                result.tool_name = j["name"].get<std::string>();
-            }
-
-            if (j.contains("arguments")) {
-                if (j["arguments"].is_string()) {
-                    result.tool_args_str = j["arguments"].get<std::string>();
-                }
-                else {
-                    result.tool_args_str = j["arguments"].dump();
-                }
-            }
+            result.tool_args_str = args.dump();
         }
         catch (...) {
             result.type = StreamEventType::CONTENT;
