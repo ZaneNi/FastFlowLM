@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 
     if (short_prompt) {
         // uniformed_input.prompt = "What are these?";
-        uniformed_input.prompt = "Solve the equation x^3 - 1 = 0 for me.";
+        uniformed_input.prompt = "Hello, my name is Alfred. Nice to meet you!";
         // uniformed_input.images.push_back("../../../tb_files/panda.png");
         // uniformed_input.images.push_back("../../../tb_files/puppy.png");
         
@@ -84,21 +84,21 @@ int main(int argc, char* argv[]) {
         std::cout << std::endl;
         std::cout << std::endl;
         std::cout << chat->show_profile() << std::endl;
-        // uniformed_input.images.clear();
+        uniformed_input.images.clear();
         // uniformed_input.images.push_back("../../../tb_files/pcb.jpg");
-        // uniformed_input.prompt = "How about this?";
+        uniformed_input.prompt = "Can you introduce the history of my name.";
         
-        // std::cout << "Prompt: " << uniformed_input.prompt << std::endl;
-        // std::cout << "Response: " << std::endl;
-        // chat->start_total_timer();
-        // response = chat->generate_with_prompt(meta_info, uniformed_input, 8192, std::cout);
-        // chat->stop_total_timer();
-        // std::cout << std::endl;
-        // std::cout << std::endl;
-        // std::cout << chat->show_profile() << std::endl;
+        std::cout << "Prompt: " << uniformed_input.prompt << std::endl;
+        std::cout << "Response: " << std::endl;
+        chat->start_total_timer();
+        response = chat->generate_with_prompt(meta_info, uniformed_input, 8192, std::cout);
+        chat->stop_total_timer();
+        std::cout << std::endl;
+        std::cout << std::endl;
+        std::cout << chat->show_profile() << std::endl;
     }
     else{
-        std::ifstream file("../../../../prompt.txt", std::ios::binary);
+        std::ifstream file("../../../tb_files/2k.txt", std::ios::binary);
         if (!file.is_open()) {
             std::cout << "Failed to open prompt file" << std::endl;
             return 1;
