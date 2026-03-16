@@ -35,8 +35,7 @@
     constexpr unsigned int QWEN3_5_TEMPORAL_PATCH_SIZE = 2;
     constexpr unsigned int QWEN3_5_MERGE_SIZE = QWEN3_5_IMAGE_MERGE_SIZE;
 
-    // hidden size of final output of vision encoder
-    constexpr unsigned int QWEN3_5_VISION_OUT_HIDDEN_SIZE = 2560;
+
     
 
 #endif
