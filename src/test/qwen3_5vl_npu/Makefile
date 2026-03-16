@@ -50,7 +50,7 @@ clean:
 
 test: $(BUILD_DIR)/
 	cp ../../model_list.json $(BUILD_DIR)/model_list.json
-	cd $(BUILD_DIR) && export LD_LIBRARY_PATH=../../../lib && ./test_qwen3_5vl_npu --model qwen3.5 -s 1
+	cd $(BUILD_DIR) && export LD_LIBRARY_PATH=../../../lib && ./test_qwen3_5vl_npu --model qwen3.5:9b -s 1
 
 -include $(TEST_DEPS)
 .PHONY: all clean test directories
@@ -76,7 +76,7 @@ clean:
 
 test: directories $(BUILD_DIR)/test_qwen3_5vl_npu.exe
 	cp ../../model_list.json $(BUILD_DIR)/model_list.json
-	cd $(BUILD_DIR) && ${PWSH} -Command "\$$env:PATH = '..\..\..\lib;' + \$$env:PATH; .\test_qwen3_5vl_npu.exe -m qwen3.5:4b -s 1 -p 0"
+	cd $(BUILD_DIR) && ${PWSH} -Command "\$$env:PATH = '..\..\..\lib;' + \$$env:PATH; .\test_qwen3_5vl_npu.exe -m qwen3.5:9b -s 1 -p 0"
 
 .PHONY: all clean test directories
 

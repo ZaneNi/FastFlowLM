@@ -10,7 +10,7 @@ xrt::device npu_device_global;
 // Model-specific factory function for Qwen family and DeepSeek_r1_0528_8b
 inline std::pair<std::string, std::unique_ptr<AutoModel>> get_qwen3_5vl_model(const std::string& model_tag) {
     static std::unordered_set<std::string> qwen3_5_Tags = {
-        "qwen3.5", "qwen3.5:4b"
+        "qwen3.5", "qwen3.5:4b", "qwen3.5:9b"
     };
 
     std::unique_ptr<AutoModel> auto_chat_engine = nullptr;
@@ -67,9 +67,10 @@ int main(int argc, char* argv[]) {
     chat->set_topk(1);
 
     if (short_prompt) {
-        uniformed_input.prompt = "What are these?";
-        uniformed_input.images.push_back("../../../tb_files/panda.png");
-        uniformed_input.images.push_back("../../../tb_files/puppy.png");
+        // uniformed_input.prompt = "What are these?";
+        uniformed_input.prompt = "Solve the equation x^3 - 1 = 0 for me.";
+        // uniformed_input.images.push_back("../../../tb_files/panda.png");
+        // uniformed_input.images.push_back("../../../tb_files/puppy.png");
         
         // uniformed_input.images.push_back("../../../tb_files/mj_icon.jpg");
         // uniformed_input.images.push_back("../../../tb_files/google_icon.png");
@@ -83,18 +84,18 @@ int main(int argc, char* argv[]) {
         std::cout << std::endl;
         std::cout << std::endl;
         std::cout << chat->show_profile() << std::endl;
-        uniformed_input.images.clear();
-        uniformed_input.images.push_back("../../../tb_files/pcb.jpg");
-        uniformed_input.prompt = "How about this?";
+        // uniformed_input.images.clear();
+        // uniformed_input.images.push_back("../../../tb_files/pcb.jpg");
+        // uniformed_input.prompt = "How about this?";
         
-        std::cout << "Prompt: " << uniformed_input.prompt << std::endl;
-        std::cout << "Response: " << std::endl;
-        chat->start_total_timer();
-        response = chat->generate_with_prompt(meta_info, uniformed_input, 8192, std::cout);
-        chat->stop_total_timer();
-        std::cout << std::endl;
-        std::cout << std::endl;
-        std::cout << chat->show_profile() << std::endl;
+        // std::cout << "Prompt: " << uniformed_input.prompt << std::endl;
+        // std::cout << "Response: " << std::endl;
+        // chat->start_total_timer();
+        // response = chat->generate_with_prompt(meta_info, uniformed_input, 8192, std::cout);
+        // chat->stop_total_timer();
+        // std::cout << std::endl;
+        // std::cout << std::endl;
+        // std::cout << chat->show_profile() << std::endl;
     }
     else{
         std::ifstream file("../../../../prompt.txt", std::ios::binary);
