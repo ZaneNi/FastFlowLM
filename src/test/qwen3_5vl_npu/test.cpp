@@ -67,14 +67,14 @@ int main(int argc, char* argv[]) {
     chat->set_topk(1);
 
     if (short_prompt) {
-        // uniformed_input.prompt = "What are these?";
-        uniformed_input.prompt = "Hello, my name is Alfred. Nice to meet you!";
-        // uniformed_input.images.push_back("../../../tb_files/panda.png");
-        // uniformed_input.images.push_back("../../../tb_files/puppy.png");
+        uniformed_input.prompt = "What are these?";
+        // uniformed_input.prompt = "Hello, my name is Alfred. Nice to meet you!";
+        uniformed_input.images.push_back("../../../tb_files/panda.png");
+        uniformed_input.images.push_back("../../../tb_files/puppy.png");
         
-        // uniformed_input.images.push_back("../../../tb_files/mj_icon.jpg");
-        // uniformed_input.images.push_back("../../../tb_files/google_icon.png");
-        // uniformed_input.images.push_back("../../../tb_files/pcb.jpg");
+        uniformed_input.images.push_back("../../../tb_files/mj_icon.jpg");
+        uniformed_input.images.push_back("../../../tb_files/google_icon.png");
+        uniformed_input.images.push_back("../../../tb_files/pcb.jpg");
         
         std::cout << "Prompt: " << uniformed_input.prompt << std::endl;
         std::cout << "Response: " << std::endl;
@@ -84,18 +84,18 @@ int main(int argc, char* argv[]) {
         std::cout << std::endl;
         std::cout << std::endl;
         std::cout << chat->show_profile() << std::endl;
-        uniformed_input.images.clear();
-        // uniformed_input.images.push_back("../../../tb_files/pcb.jpg");
-        uniformed_input.prompt = "Can you introduce the history of my name.";
+        // uniformed_input.images.clear();
+        // // uniformed_input.images.push_back("../../../tb_files/pcb.jpg");
+        // uniformed_input.prompt = "Can you introduce the history of my name.";
         
-        std::cout << "Prompt: " << uniformed_input.prompt << std::endl;
-        std::cout << "Response: " << std::endl;
-        chat->start_total_timer();
-        response = chat->generate_with_prompt(meta_info, uniformed_input, 8192, std::cout);
-        chat->stop_total_timer();
-        std::cout << std::endl;
-        std::cout << std::endl;
-        std::cout << chat->show_profile() << std::endl;
+        // std::cout << "Prompt: " << uniformed_input.prompt << std::endl;
+        // std::cout << "Response: " << std::endl;
+        // chat->start_total_timer();
+        // response = chat->generate_with_prompt(meta_info, uniformed_input, 8192, std::cout);
+        // chat->stop_total_timer();
+        // std::cout << std::endl;
+        // std::cout << std::endl;
+        // std::cout << chat->show_profile() << std::endl;
     }
     else{
         std::ifstream file("../../../tb_files/2k.txt", std::ios::binary);
