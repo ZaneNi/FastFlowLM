@@ -495,6 +495,11 @@ void AutoModel::set_topk(int topk) {
         header_print("WARNING", "Top-k must be greater than 0");
         return;
     }
+    if (topk > this->lm_config->vocab_size) {
+        header_print("WARNING", "Top-k is greater than vocab size, set to vocab size: " << this->lm_config->vocab_size);
+        topk = this->lm_config->vocab_size;
+    }
+    
     this->sampler->top_k = topk;
 }
 
