@@ -17,18 +17,23 @@ jobs:
     strategy:
       matrix:
         include:
-          - release: "24.04"
+          - version: "24.04"
             container_tag: "ubuntu24.04"
             codename: "noble"
             distro: "ubuntu"
-          - release: "25.10"
+          - version: "25.10"
             container_tag: "ubuntu25.10"
             codename: "questing"
             distro: "ubuntu"
-          - release: "26.04"
+          - version: "26.04"
             container_tag: "ubuntu26.04"
             codename: "resolute"
             distro: "ubuntu"
+          - version: "13"
+            container_tag: "debiantrixie"
+            codename: "trixie"
+            distro: "debian"
+
     container:
       image: ghcr.io/fastflowlm/fastflowlm/build-environment:${{ matrix.container_tag }}
       credentials:
@@ -62,14 +67,14 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           sed -e "s|@@DEB_VERSION@@|${{ steps.get_version.outputs.deb_version }}|g" \
-              -e "s|@@codename@@|${{ matrix.codename }}|g" \
+              -e "s|@@DEB_CODENAME@@|${{ matrix.codename }}|g" \
               -e "s|@@DEB_DATE@@|$(date -R)|g" \
               debian/changelog.in > debian/changelog
 
           chmod +x debian/rules
 
-      - name: Upgrade Rust toolchain (Ubuntu 24.04/ Debian trixie only)
-        if: ${{ matrix.release == '24.04' || matrix.release == 'trixie' }}
+      - name: Upgrade Rust toolchain (Ubuntu 24.04/ Debian 13 only)
+        if: ${{ matrix.version == '24.04' || matrix.version == '13' }}
         run: |
           apt-get update
           apt-get install -y --no-install-recommends curl ca-certificates
@@ -86,14 +91,14 @@ jobs:
           DEB_VERSION: ${{ steps.get_version.outputs.deb_version }}
         run: |
           dpkg-buildpackage -b -us -uc
-          mv ../fastflowlm_${DEB_VERSION}_amd64.deb ./fastflowlm_${DEB_VERSION}_${{ matrix.distro }}${{ matrix.release }}_amd64.deb
-          ls -lah ./fastflowlm_${DEB_VERSION}_${{ matrix.distro }}${{ matrix.release }}_amd64.deb
+          mv ../fastflowlm_${DEB_VERSION}_amd64.deb ./fastflowlm_${DEB_VERSION}_${{ matrix.distro }}${{ matrix.version }}_amd64.deb
+          ls -lah ./fastflowlm_${DEB_VERSION}_${{ matrix.distro }}${{ matrix.version }}_amd64.deb
 
       - name: Upload Debian package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: flm-${{ matrix.distro }}${{ matrix.release }}-${{ steps.short_sha.outputs.sha }}-deb
-          path: ./fastflowlm_${{ steps.get_version.outputs.deb_version }}_${{ matrix.distro }}${{ matrix.release }}_amd64.deb
+          name: flm-${{ matrix.distro }}${{ matrix.version }}-${{ steps.short_sha.outputs.sha }}-deb
+          path: ./fastflowlm_${{ steps.get_version.outputs.deb_version }}_${{ matrix.distro }}${{ matrix.version }}_amd64.deb
           if-no-files-found: error
 
   release:
