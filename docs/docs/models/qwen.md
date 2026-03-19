@@ -270,7 +270,7 @@ flm run qwen3.5:4b
 You can control image resizing when running or serving the model using the `--img-pre-resize` flag or simply `-r`:
 
 ```shell
-flm flm run qwen3.5:4b -r 1
+flm run qwen3.5:4b -r 1
 ```
 
 ```shell
