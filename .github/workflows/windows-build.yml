@@ -14,8 +14,7 @@ on:
 
 jobs:
   build-windows:
-    runs-on: [self-hosted, windows, x64, nock9]
-
+  runs-on: [self-hosted, windows, x64]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
