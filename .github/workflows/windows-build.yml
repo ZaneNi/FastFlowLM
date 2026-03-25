@@ -16,6 +16,10 @@ jobs:
   build-windows:
     runs-on: [self-hosted, windows, x64]
     
+    defaults:
+      run:
+        working-directory: src
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
