@@ -14,7 +14,7 @@ on:
 
 jobs:
   build-windows:
-    runs-on: [nock9, windows, x64]
+    runs-on: [self-hosted, windows, x64, nock9]
 
     steps:
       - name: Checkout code
