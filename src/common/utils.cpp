@@ -123,13 +123,13 @@ std::string get_executable_directory() {
 #endif
 }
 
-std::string get_user_documents_directory() {
+std::string get_user_directory() {
 #ifdef _WIN32
     char buffer[MAX_PATH];
-    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, 0, buffer))) {
+    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, buffer))) {
         return std::string(buffer);
     }
-    // Fallback to current directory if Documents folder cannot be found
+    // Fallback to current directory if user folder cannot be found
     return ".";
 #else
     const char* home = std::getenv("HOME");
@@ -140,6 +140,8 @@ std::string get_user_documents_directory() {
 #endif
 }
 
+///@brief get_server_port gets the server port from environment variable FLM_SERVE_PORT
+///@return the server port, default is 52625 if environment variable is not set
 int get_server_port(int user_port) {
     if (user_port > 0 && user_port <= 65535) {
         return user_port;
@@ -180,6 +182,8 @@ int get_server_port(int user_port) {
     return 52625; // Default port
 }
 
+///@brief get_models_directory gets the models directory from environment variable or defaults to user/.flm/models on Windows or ~/.config/flm on Linux
+///@return the models directory path
 std::string get_models_directory() {
 #ifdef _WIN32
     char* model_path_env = nullptr;
@@ -197,12 +201,12 @@ std::string get_models_directory() {
         return std::string(model_path_env);
     }
 #endif
-    // Fallback to Documents/flm/models on Windows or ~/.config/flm on Linux if environment variable is not set
-    std::string documents_dir = get_user_documents_directory();
+    // Fallback to user/.flm/ on Windows or ~/.config/flm on Linux if environment variable is not set
+    std::string user_dir = get_user_directory();
 #ifdef _WIN32
-    return documents_dir + "/flm/models";
+    return user_dir + "\\.flm";
 #else
-    return documents_dir + "/flm";
+    return user_dir + "/flm";
 #endif
 }
 

@@ -343,7 +343,7 @@ inline bool check_file_exists(std::string name) {
 
 /// \brief get the user's Documents directory on Windows or config directory on Linux
 /// \return the user's Documents directory path on Windows, ~/.config on Linux
-std::string get_user_documents_directory();
+std::string get_user_directory();
 
 ///@brief get_executable_directory gets the directory where the executable is located
 ///@return the executable directory path

@@ -420,20 +420,15 @@ void Runner::cmd_save(std::vector<std::string>& input_list) {
     path_sep = "\\";
     char* model_path_env = nullptr;
     size_t len = 0;
-    if (_dupenv_s(&model_path_env, &len, "FLM_MODEL_PATH") == 0 && model_path_env != nullptr) {
-        history_dir = std::string(model_path_env) + path_sep + "history";
-        free(model_path_env);
-    } else {
-        // Fallback to Documents directory if environment variable is not set
-        std::string documents_dir = utils::get_user_documents_directory();
-        history_dir = documents_dir + path_sep + "flm" + path_sep + "history";
-    }
+
+    history_dir = utils::get_models_directory() + path_sep + "history";
+
 #else
     const char* model_path_env = std::getenv("FLM_MODEL_PATH");
     if (model_path_env && *model_path_env) {
         history_dir = std::string(model_path_env) + path_sep + "history";
     } else {
-        std::string documents_dir = utils::get_user_documents_directory();
+        std::string documents_dir = utils::get_user_directory();
         history_dir = documents_dir + path_sep + "flm" + path_sep + "history";
     }
 #endif

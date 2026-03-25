@@ -10,6 +10,10 @@ AppPublisher=FastFlowLM
 
 AppPublisherURL=www.fastflowlm.com
 
+; DefaultDirName={localappdata}\flm
+; PrivilegesRequired=lowest
+; PrivilegesRequiredOverridesAllowed=dialog
+
 DefaultDirName={pf64}\flm
 
 DefaultGroupName=flm
@@ -228,7 +232,7 @@ begin
   end
   else begin
     // FLM_MODEL_PATH doesn't exist, use default userdocs location
-    Result := ExpandConstant('{userdocs}\flm');
+    Result := GetEnv('USERPROFILE') + '\.flm';
   end;
 end;
 

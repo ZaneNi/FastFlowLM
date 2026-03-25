@@ -82,9 +82,9 @@ std::string get_executable_directory() {
     return ".";
 }
 
-///@brief get_user_documents_directory gets the user's Documents directory
+///@brief get_user_directory gets the user's Documents directory
 ///@return the user's Documents directory path
-std::string get_user_documents_directory() {
+std::string get_user_directory() {
     char buffer[MAX_PATH];
     if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, 0, buffer))) {
         return std::string(buffer);
@@ -97,7 +97,7 @@ std::string get_user_documents_directory() {
 ///@param exe_dir the executable directory
 void ensure_models_directory(const std::string& exe_dir) {
     // Use Documents directory for models instead of executable directory
-    std::string documents_dir = get_user_documents_directory();
+    std::string documents_dir = get_user_directory();
     std::string models_dir = documents_dir + "/flm/models";
     if (!std::filesystem::exists(models_dir)) {
         std::filesystem::create_directories(models_dir);
@@ -165,7 +165,7 @@ std::string get_models_directory() {
         }
     }
     // Fallback to Documents directory if environment variable is not set
-    std::string documents_dir = get_user_documents_directory();
+    std::string documents_dir = get_user_directory();
     return documents_dir + "/flm/models";
 }
 
